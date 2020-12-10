@@ -1,0 +1,146 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Master's Thesis
+% Jesper Pedersen
+%
+% Based on dionhaefner 's theis which was
+%
+% Based on uiothesis and classicthesis
+%
+% Compile with ``pdflatex -shell-escape "thesis".tex``
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%-----------------------------------------------
+%   PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%-----------------------------------------------
+
+\documentclass[a4paper,11pt,openany]{jespersthesis}
+%From option removed: ,twoside
+% Language setup
+\usepackage[english]{babel}
+\setquotestyle{english}
+
+% Additional preamble files
+%\input{preamble/pgfcache}
+%\input{preamble/listings}
+\input{preamble/misc}
+
+\usepackage{morewrites}
+
+%\graphicspath{{figures/}}
+
+%\hyphenation{pa-ra-me-te-ri-za-tion vis-cosi-ty sver-drups dions-thesis}
+
+\bibliography{references.bib}
+%\addbibresource{references.bib}
+
+
+% draft packages, remove for final version
+\usepackage{todonotes}
+%\includeonly{Xray}
+%-----------------------------------------------
+%\includeonly{chapters/Data}
+\begin{document}
+\chapterstyle{margin}
+
+% check alphabet length
+%\newlength{\alphabetlength}
+%\settowidth{\alphabetlength}{abcdefghijklmnopqrstuvwxyz}
+%\the\alphabetlength
+%-----------------------------------------------
+%   FRONT MATTER
+%-----------------------------------------------
+\frontmatter
+\pdfbookmark[-1]{Front matter}{frontmatter}
+\pagestyle{empty}
+\pagenumbering{gobble}
+\hypersetup{pageanchor=false}
+
+\include{frontmatter/titlepage}
+\clearpage
+\include{frontmatter/titleback}
+\cleardoublepage
+\pagenumbering{roman}
+\pagestyle{simple}
+\include{frontmatter/acknowledgements}
+\cleartoevenpage
+\include{frontmatter/abstract}
+\cleardoublepage
+\include{frontmatter/contents}
+%\tableofcontents*
+%\include{frontmatter/contents}
+\cleardoublepage
+%-----------------------------------------------
+%   MAIN MATTER
+%-----------------------------------------------
+
+\mainmatter
+\bookmarksetup{startatroot}
+\pagenumbering{arabic}
+\hypersetup{pageanchor=True}
+\addtocontents{toc}{\protect\setcounter{tocdepth}{1}}
+
+%-----------------------------------------------
+%   INTRODUCTION
+%-----------------------------------------------
+\part{X-ray physics and setup}
+\include{chapters/Introduction}
+\include{chapters/Xray}
+\include{chapters/Data}
+
+%-----------------------------------------------
+%   BODY
+%-----------------------------------------------
+%\include{chapters/Introduction}
+\part{Foreign object detection with deep learning}
+{\vspace*{-2cm}
+%\begin{whole}
+%\centering
+By now it is perhaps evident that I have eschewed the traditional IMRaD struture of a thesis.
+This is done for two reasons.
+
+The first, was to keep the structure closer to actual real world pipeline, from x-rays to images to model.
+
+Secondly, I view the process of creating a machine learning algorithm as the collection of many building blocks, as Jeff Clune defines the approach to manual AI in \cite{cluneAIGAsAIgeneratingAlgorithms2020}. In that sense, by presenting a deep learning algorithm as consisting of 4 steps, and for each step presenting the building blocks I have used, this modular approach has been made as clear as possible.
+%\end{whole}
+}
+%Finally, machine learning is a field in rapid growth, with }
+%{The reason for presenting the material in this order is}
+%\part{Machine Learning}
+\include{chapters/DataAug}
+%\include{drafts/backprob_and_optimize}
+\include{chapters/Learning}
+\include{chapters/NN}
+%\include{chapters/ML}
+\include{chapters/FOdetection}
+\include{chapters/Conclusion}
+%-----------------------------------------------
+%   APPENDIX
+%-----------------------------------------------
+%\part{Appendix}
+%\bibliographystyle{unsrt}
+%\bibliography{references}
+
+\appendix
+\addtocontents{toc}{\protect\setcounter{tocdepth}{0}}
+\part*{Appendix}
+\include{backmatter/appendix}
+
+%-----------------------------------------------
+%   BACK MATTER
+%-----------------------------------------------
+
+\bookmarksetup{startatroot}
+\include{backmatter/bibliography}
+\cleardoublepage
+%\pdfbookmark[-1]{Back matter}{backmatter}
+\pagestyle{empty}
+\include{backmatter/colophon}
+\include{backmatter/declaration}
+%\printbibliography
+%-----------------------------------------------
+
+\end{document}

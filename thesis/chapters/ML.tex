@@ -1,0 +1,330 @@
+\chapter{Machine learning}
+In this chapter I will introduce and explain the many different concepts and algorithms that as a whole have been designed in order to facilitate a machine to learn.
+In broad terms these can be grouped as a data part, a learning part, and finally a model part.\\
+The data part will mainly focus on an idea called data augumentation. Data is the foundation of machine learning, and as such various tricks have been invented in order to upgrade the datas as a source to be learned from. These approaches are called data augumentation, and in a broad sense the term encompasses any way to enrich, enlarge or enhance data in a meaningful way. I will be working with images, and for images most of these algorithms are extreme easy to visualize.\todo{Introduce FOSS data perhaps}
+For learning part I will show various different tricks one can use to improve the learning process of the model. 
+There exist many different models and the ones I will be used are called convolutional neural nets. These consist of a few different subparts, and I will introduce various choises one have here, and explain why I ended up designing my model as I did. 
+\cite{lu12in1MultiTaskVision2019}
+\cite{dyerAsymptoticsWideNetworks2019}
+\cite{izmailovAveragingWeightsLeads2019}
+\cite{heBagTricksImage2018}
+\cite{engstromExploringLandscapeSpatial2019b}
+\cite{tianFCOSFullyConvolutional2019}
+\cite{linFocalLossDense2017}
+
+\newpage
+\section{Data Augmentation}
+First and foremost, the images I work with where taken from above, and since the subject is meat, with possible some non-meat we would like identified, the algorithm should be rotationally invariant. A simple way to implement this is off course, since the images were 32x32 to rotate and mirror the data, to get all the possible symmetries.
+\cite{heBagTricksImage2018}
+\begin{marginfigure}
+  \missingfigure{Augmentations}%}
+\caption{Figure showing the various perturbations that together constitutes my data augmentation step.}
+\end{marginfigure} 
+
+\section{Artificial foreign objects}
+\begin{figure*}[t]
+%\includegraphics{figures/NN2.png}
+\missingfigure{}
+\caption{Overview of the artificial foreign object transformation.}
+\label{fig.AFO_process}
+\end{figure*}
+In order to beat the problem of i.i.d. , and to attain some of the benefits of combinatorial reasoning, an algorithm to create artificial foreign objects to be superimposed on images was created. 
+To begin with the data is created by "adding" foreign objects on top of meat.  In some sense this algorithm does the same adding, just in the software.
+This required three steps.
+% Gather FO's
+First a distribution of the effect of fos on top of meat was needed. This was extracted from the training set, thus making it data-driven. An alternative would be to simulate this directly.
+% new_image
+Secondly this distribution should be able to generate values to artificial foreign objects.
+%create shape
+Thirdly these values should be used in conjunction with a custom shape to create a new foreign object to be added on top of empty images to enhance the training set with more positives, and more importantly, positives with "any" shape.
+%Transformation to be run alongside other data augmentation steps.
+\subsubsection{Gather FOs}
+The fact that I needed all the foreign objects of my training set as a distribution necessated the creation of an additional dataset containing the full images
+\begin{marginfigure}
+  \missingfigure{}%}
+\caption{Full image with the bounding boxes of foreign objects marked}
+\end{marginfigure} 
+\subsubsection{Create Shapes}
+The shapes created are 2D oriented. This was natural since the images are 2D, but one could do a fuller simulation of 3D objects and then project them to 2D if specific 3D shapes was of interest.
+\begin{marginfigure}
+  \missingfigure{}%}
+\caption{Examples of custom shapes}
+\end{marginfigure} 
+\subsubsection{New images}
+With a custom shape, and a FO drawn from the training distribution as inputs I created a function that returned a 32 by 32 image, for each channel in the FO, which I could add in a transformation as a data augmentation to create images with artificial foreign objects.
+\begin{marginfigure}
+  \missingfigure{}%}
+\caption{Example of top images that can be added to images without FO's}
+\end{marginfigure} 
+\subsubsection{AFO transformation}
+The transformation I created is different from the standard data augmentation transformations in the sense that it also has to change the label of the target image. Furthermore I decided to only apply the transformation to images that didn't have any FO's to begin with in order to not dilute the original true signal.
+
+\newpage
+\section{Neural network}
+In this section I will introduce neural networks, and two different structures of networks, namely the fully connected neural network, and the convolutional neural network. And finally I will show how backpropagation works.
+
+\subsection{Fully connected neural network}
+\begin{marginfigure}
+  \missingfigure{}%}
+\caption{Figure showing fnn}
+\end{marginfigure} 
+The formula for fnn can be written as:
+\begin{align}
+	y_{(n)}^{k} &= W_{j,(n)}^k u_{(n-1)}^j + b_{(n)}^k \\
+	u_{(n)}^k &= f(y_{(n)}^k)
+\end{align}
+
+Now $f(y^k)$ is the activation function which is responsible for introducing the nonlinearity, and it is something I will return to in the next section. For now we look at $y^k$ and just notices that this is the result of an affine transformation. The fully connected part is due to the fact that each element of $y^k$ depends on all features of the preceding layer $u^j$. 
+
+
+\subsection{Convolutional neural network}
+\begin{marginfigure}
+  \missingfigure{}%}
+\caption{Figure showing convolution}
+\label{fig.convolution}
+\end{marginfigure}
+\begin{marginfigure}
+  \missingfigure{}%}
+\caption{Figure showing CNN}
+\end{marginfigure} 
+Convolutions of images with a certain filter or kernel has been standard practice in computer vision for many years. Convolutions work by apply a filter as can be seen in Fig. \ref{fig.convolution} or more formally if after apply a convolution consiting of for example 3x3 kernel to a image of some dimensionality one gets a new featuremap of the size:
+\begin{align}
+	FM_{ij} = \sum_{k=i-1}^{i+1} \sum_{l=j-1}^{j+1} K_{kl} * I_{kl}
+\end{align}
+
+Depending on who you ask either schmidthuber or le cun revolutionized the field of computer vision by winning a competition using Convolutional Neural Networks back 2012. With convolutions in the network you can learn the traditional feature engineering part of computer vision itself without having to do it explicitly your self.
+
+Thus using convolutions one gets a new way of creating linear combinations of inputs, with the big difference being that each new feature created thus has some sense of restriction of neighbourhood of influence, and that one kernel results in many different features. 
+\subsubsection{Max-pooling}
+\begin{marginfigure}
+  \missingfigure{Max pool}%}
+\caption{Figure showing Maxpooling}
+\label{fig.maxpool}
+\end{marginfigure} 
+Max pooling is a way to reduce the dimensionality of the images or feature maps. Furthermore it introduces some kind of invariance to local translations. For some kernel size it works by returning the maximum of the inputs, with an example in Fig. \ref{fig.maxpool}.
+
+For convolutional networks we get:\\
+%\section{Neural networks}
+%\subsection{CNN}
+\cite{heDeepResidualLearning2015}
+\cite{tompsonEfficientObjectLocalization2015}
+\cite{szegedyGoingDeeperConvolutions2015}
+\cite{szegedyInceptionv4InceptionResNetImpact2017}
+\cite{azulayWhyDeepConvolutional2019}
+\cite{huangSNDCNNSelfnormalizingDeep2020}
+%\subsubsection{Convolutions}
+%\subsubsection{Max pooling}
+%\subsubsection{Differential programming}
+\subsection{Sliding window}
+%Message: Preprocessing of data for algorithm
+%Pros: Keeps network size reduced. On scale of FO's. Increases amount of training data.
+I use a sliding window approach to generate images to use as input to my convolutional neural network, which is to take advantage of the typical size of the foreign objects I am looking for.
+% Implementation
+I use 50\% overlapping sliding windows to create images of $32 x 32$ pixels. Using these reduced sizes allow me stretch my initial limited dataset of approximately $200 x 300 x 400$ images considerably. 
+% Benefits restated
+Since the task of looking for foreign objects is hardest for the smallest objects, keeping the input of a size comparable to the expected objects seemed prudent. Furthermore this greatly increased the amount of background I can use to learn on (true negatives), as now one tiny ball of metal of a size of $5 x 5$ wont reduce a full picture to positive. Furthermore this is also a simple way to constrain the size of the classification part of my neural network.
+% Cons
+As far as I can tell the sliding window approach is not state of the art. It seems to be more common to use random crops of full images as input neural networks, with the corresponding rescaling to fit a common input size \todo{Find reference for random crop - rescale workflow}.
+Since I was limited in the amount of images at my disposal, and the fact that the pixels have very consistent physical interpretation, namely arising from the camara in the detector, the sliding windows approached seemed to be a better fit.
+\begin{marginfigure}
+  \missingfigure{}%}
+\caption{Figure sliding windows}
+\label{fig.slidingwindows}
+\end{marginfigure}
+
+\newpage
+%\subsection{Activation functions}
+\section{Activation functions}
+Why activation functions?
+The activation functions are the key to the neural network. Without these, consecutive layers of linear combinations of features would only result in one grand linear combination. Thus the activation function, and more generally, the algorithms used between layers of linear combinations or filters, are the key to introducing non-linearity to the model. The activation functions have historically taken many different shapes and even to this day new functions are continually developed. I will introduce the ones I have been using, starting with the Rectified Linear Units\cite{nairRectifiedLinearUnits} (ReLU), and ending up with what I perceive to be the most exiting recent method, the scaled exponential linear unit\cite{klambauerSelfNormalizingNeuralNetworks2017} (SELU).\\
+
+A possible biological motivation for the activation functions come from the neural potential in the brain. Neurons show behaviour where when a certain activations threshold is crossed, they fire all at once. Thus the first activation functions such as the Sigmoid where initially modelled very steeply, as to mimic this behaviour. With larger nets, the efficiency became paramount though, which favours other simpler functions.
+
+\subsection{ReLU} 
+The ReLU can be formally written as:
+\begin{marginfigure}
+  \missingfigure{}%}
+\caption{Figure showing ReLU, Leaky ReLU, ELU and SELU.}
+\end{marginfigure} 
+
+\begin{align}
+\text{ReLU}(x) &= \text{max}(x,0)\\
+\partial_x \text{ReLU}(x) &= \Theta(x) \text{for} x \neq 0 
+\end{align}
+
+Where $\Theta(x)$ is the Heaviside step function, with $\Theta(0)$ being undefined in this case\todo{Make marginplot figure}. \\
+
+The simplicity of ReLU makes it extremely efficient and it has all but replaced earlier activation functions such as the sigmoid.\\
+
+One possible downside to the ReLU is readily apparent in the fact that the function can turn negative inputs off, thus leading neurons to become inactive\todo{Find reference for this}. This inspirred the following modifications.
+
+\subsection{Leaky ReLU}
+The leaky ReLU is\todo{Find paper on leaky relu}:
+\begin{align}
+\text{ReLU}(x) &= \text{max}(x,0) + \lambda\text{min}(x,0)\\
+\partial_x \text{ReLU}(x) &= \Theta(x) + \lambda \Theta(-x) \text{for} x \neq 0 
+\end{align}
+
+
+We immediately see that the main difference now is that negative outputs contribute, and thus can be back-propagated.\\
+
+\subsection{SELU}
+The scaled exponential linear unit, is based on the exponential linear unit\todo{Check the correct way to write ELU}:
+\begin{align}
+	\text{ELU}(x) = \Theta(x)  x + \Theta(-x) (\alpha \exp^x - \alpha) 
+\end{align}
+If one scales the two terms with respectively $\lambda, \alpha$ one can get:
+\begin{align}
+	\text{SELU}(x) &= \lambda (\Theta(x)  x + \Theta(-x) (\alpha \exp^x - \alpha) ) \\
+	\partial_x \text{SELU}(x) &= \lambda (\Theta(x) + \Theta(-x) \alpha \exp^x )
+\end{align}
+Now the magic is that this function makes the network self normalizing. Thus it can replace batch normalization and it has been shown to perform great\cite{zhangEffectivenessScaledExponentiallyRegularized2018}
+\cite{madasuEffectivenessSelfNormalizing2019}\\
+. \todo{write formal definition of self-normalizing networks. Alternatively include the full proof.}
+\subsection{Swish}
+\begin{align}
+\text{Swish}(x) &= x \cdot (1+\exp(-\beta x))^{-1} \\
+\partial_x \text{Swish}(x) &= \beta \cdot \text{Swish}(x) + (1+\exp(-\beta x))^{-1} \cdot (1-\beta \cdot \text{Swish}(x))
+\end{align}
+\subsection{Mish}
+The mish and the swish are two new activation functions which I have also looked at.
+\begin{align}
+\text{Mish}(x) &= x \cdot \tanh(ln(1+\exp^x)) \\
+\partial_x \text{Mish}(x) &= \frac{\exp^x \omega}{\delta^2}\\
+\omega &= 4(x+1) + 4 \exp^{2x} + \exp^{3x} + \exp^{x}(4x+6) \\
+	\delta &= 2\exp^{x} + \exp^{2x} + 2
+\end{align}
+
+\subsection{Comparison}
+My comparison of how the algorithms perform with chosen algorithms
+%\subsubsection{Activation functions}
+Relu and selu important
+\cite{nairRectifiedLinearUnits}
+\cite{klambauerSelfNormalizingNeuralNetworks2017}
+\cite{zhangEffectivenessScaledExponentiallyRegularized2018}
+\cite{madasuEffectivenessSelfNormalizing2019}
+\newpage
+\section{Normalization and regularization}
+There is other stuff happening than just activation functions.
+\subsection{Batch Normalization}
+Batch normalization introduces another set of parameters to learn, namely the parameters to normalize each feature, such that a batch as a whole is normalized. This have been shown to work very effectively and nice.\todo{Find refs, read refs, and write proper explation}.
+\cite{santurkarHowDoesBatch2019}
+
+\begin{marginfigure}
+  \missingfigure{BN, and WN}%}
+\caption{Figure showing/explaining Batch Normalization and Weight Normalization.}
+\end{marginfigure} 
+
+\subsection{Weight normalization}
+Weight normalization\cite{salimansWeightNormalizationSimple} can be viewed as an alternative to the variance normalization of batch normalization. Instead we split the vectors resembling each weight into two components, namely a length and a direction. This means that we get:
+\begin{align}
+	WN
+\end{align}
+
+\subsection{Dropout}
+
+Dropout\cite{hintonImprovingNeuralNetworks2012} is a technique that aim to increase a neural networks ability to generalize. It is related to the method of adding noise to the hidden units of a network and can be considered as a form of stochastic regularization. Dropout was shown in\cite{srivastavaDropoutSimpleWay2014} to improve generalization performance on many different tasks, and it was thus ideal for use in my case as well.\\
+
+It works by "dropping out" a percentage of the neurons during training as seen in Fig.\ref{fig.dropout}. This in turn ensures that no neurons can freeload, and that each has to contribute something. Furthermore overfitting generally results from many neurons linking tighty, which is much harder since it is now random during training which links are active, and thus gets updated at the same time. In effect this lets one train $2^n$ networks at the same time, each network highly correlated with all the others, and thus it can also be thought as an ensemble method.\\
+
+\begin{marginfigure}
+  \missingfigure{Dropout1d}%}
+\caption{Dropout visualization}
+\label{fig.dropout}
+\end{marginfigure} 
+
+During testing all the neurons are activated at the same time, and their output is then scale down in order to reflect the increased number of connections. If the dropout percentage is sat to $p$ the output is scaled by $p$.\\
+
+Formally normally we have:
+\begin{align}
+z_i^{(l+1)} &= \bar{w}_i^{(l+1)}\bar{y}^l + b_i^{l+1}\\
+y_i^{(l+1)} &= f(z_i^{(l+1)})
+\end{align}
+
+Now instead we have:
+\begin{align}
+r_j^l &\sim \text{Bernoulli}(p)\\
+\tilde{y}^l &=\bar{r}^l \cdot \bar{y}^l \\
+z_i^{(l+1)} &= \bar{w}_i^{(l+1)}\tilde{y}^l + b_i^{l+1}\\
+y_i^{(l+1)} &= f(z_i^{(l+1)})
+\end{align}
+
+\subsection{Spatial dropout}
+Dropout was initially thought of for fully connected networks, but it can be easily extended to CNN's. In CNN's nearby activations are connected, and thus a different method is needed.
+% by instead of dropping individual connections one drops full featuremaps.
+Instead one can use spatial dropout\cite{tompsonEfficientObjectLocalization2015} where one instead drops full feature maps. In this way the network has to use all the feature maps, and it can not become overdependent on just a few.\\
+\begin{marginfigure}
+  \missingfigure{Dropout2d}%}
+\caption{Spatial dropout visualization}
+\label{fig.dropout2d}
+\end{marginfigure} 
+
+\subsection{DropBlock}
+For CNN another more specialized method exists called DropBlock \cite{ghiasiDropBlockRegularizationMethod}, in DropBlock its not entire channels that are dropped instead a block in the feature maps is dropped. In some sense dropblock can be seen as the continius extensention of standard dropout to the full 2d dropout. This is done in order to make the model able to learn different features of each image on its own. 
+\begin{marginfigure}
+  \missingfigure{DropBlock}%}
+\caption{DropBlock visualization}
+\label{fig.dropblock}
+\end{marginfigure} 
+
+\subsection{Implementation}
+I used both dropout and dropout2d (the one for CNN's). I got the following response:
+
+%\subsubsection{Dropout}
+\cite{hintonImprovingNeuralNetworks2012}
+\cite{srivastavaDropoutSimpleWay2014}
+\cite{galDropoutBayesianApproximation}
+\cite{tompsonEfficientObjectLocalization2015}
+\cite{mianjyImplicitBiasDropout}
+\newpage
+\cite{kendallBayesianSegNetModel2016}
+\cite{liUnderstandingDisharmonyDropout2019}
+%\subsubsection{Batch normalization}
+\cite{ioffeBatchNormalizationAccelerating2015}
+%\subsubsection{Weight normalization}
+\cite{salimansWeightNormalizationSimple}
+\newpage
+%\subsubsection{Structure}
+\cite{hanDeepCompressionCompressing2016}
+\cite{daiDeformableConvolutionalNetworks2017}
+\cite{huangDenselyConnectedConvolutional2017}
+\cite{sadighImprovingResolutionCNN2018}
+\cite{frankleLotteryTicketHypothesis2019}
+\cite{radosavovicNetworkDesignSpaces2019a}
+\cite{radosavovicDesigningNetworkDesign2020}
+\cite{lassanceLaplacianNetworksBounding2018}
+\cite{sculleyHiddenTechnicalDebt}
+\section{Backpropagation}
+\begin{marginfigure}
+  \missingfigure{Backprop}%}
+\caption{Figure showing backpropagation}
+\label{fig.backprop}
+\end{marginfigure} 
+Backpropagation is basically the chain rule of derivatives applied at large. If the network we are working with aims to optimize some function $F$ we can calculate.
+\begin{align}
+	\frac{\partial F}{\partial W_{j,(N)}^k}  &= \frac{\partial F}{\partial u^{\alpha_{(N)}}} \cdot \frac{\partial u^{\alpha_{(N)}}}{\partial y^{\beta_{(N)}}} \cdot \frac{\partial y^{\beta_{(N)}}}{\partial W_{j,(N)}^k} \\
+	\frac{\partial F}{\partial W_{j,(N)}^k}  &= \frac{\partial F}{\partial u^{\alpha_{(N)}}} \cdot \frac{\partial u^{\alpha_{(N)}}}{\partial y^{\alpha_{(N)}}} \cdot \delta_{k \alpha} \cdot u^{j_{(N-1)}} \\
+	\frac{\partial F}{\partial W_{j,(N)}^k}  &= \frac{\partial F}{\partial u^{k_{(N)}}} \cdot \frac{\partial u^{k_{(N)}}}{\partial y^{k_{(N)}}} \cdot u^{j_{(N-1)}}
+\end{align}
+Now the order becomes apparent when you calculate the update due to weights from the second last layer.
+\begin{align}
+	\frac{\partial F}{\partial W_{j,(N-1)}^k}  &= \frac{\partial F}{\partial u^{\alpha_{(N)}}} \cdot \frac{\partial u^{\alpha_{(N)}}}{\partial y^{\alpha_{(N)}}} \cdot \frac{\partial y^{\alpha_{(N)}}}{\partial u^{\beta_{(N-1)}}} \cdot \frac{\partial u^{\beta_{(N-1)}}}{\partial y^{\beta_{(N-1)}}} \cdot \delta_{k \beta} \cdot u^{j_{(N-2)}} \\
+	\frac{\partial F}{\partial W_{j,(N-1)}^k}  &= \frac{\partial F}{\partial u^{\alpha_{(N)}}} \cdot \frac{\partial u^{\alpha_{(N)}}}{\partial y^{\alpha_{(N)}}} \cdot \frac{\partial y^{\alpha_{(N)}}}{\partial u^{k_{(N-1)}}} \cdot \frac{\partial u^{k_{(N-1)}}}{\partial y^{k_{(N-1)}}} \cdot u^{j_{(N-2)}} 
+\end{align}
+
+We can immediately see that a fair number of terms are reusable, and thus it lead one to think of the neural network as a graph, where as we forward propagate, it is naturally at the same to calculate the factor of each node corresponding to what we will need in the backpropagation.\\
+
+Depending on which order you calculate the matrix product you can either do matrix multiplications all the way, or have to do vector matrix multiplications.\\
+\cite{snoekPracticalBayesianOptimization}
+\cite{geigerScalingDescriptionGeneralization2020}
+\subsection{Loss functions}
+% label smoothing.
+\cite{mullerWhenDoesLabel}
+
+\newpage
+\section{Evaluation}
+\cite{zintgrafVisualizingDeepNeural2017}
+\cite{rendleDifficultyEvaluatingBaselines2019}
+\subsection{K-fold validation}
+%\subsection{AB testing}
+%\subsection{Malicious attacks}

@@ -1,0 +1,23 @@
+% Compton scat
+\resizebox{11.5pc}{!}{
+\begin{tikzpicture}
+% Incident wave
+\draw [-,pblue,smooth,domain=0:1.5] plot (\x, {0.25*sin(8*pi*\x r)});
+\draw [->, pblue] (1.5,0) to [out=84,in=180] (1.58,0.1) to [out=0,in=180] (1.82,0);
+%Nucleus
+\draw [fill,pred] (2.5,0) circle [radius=0.15];
+%Electron bane
+\draw [gray] (2.5,0) circle [radius=0.65];
+%Electron 
+%old
+\draw [] (2.332,0.628) circle [radius=0.05];
+%new
+\draw [fill] (2.5,0.65) circle [radius=0.05];
+\node [right] at (2.48,0.58) {$\mathrm{e^{-}}$};
+% Line for scale
+\draw [white] (3.5,0.65) -- (4.4,0.65);
+%Out wave
+\draw [-,porange,smooth,domain=3.2:4.2] plot (\x, {0.25*sin(4*pi*(\x-3.2) r)});
+\draw [->, porange] (4.2,0) to [out=80,in=180] (4.28,0.1) to [out=0,in=180] (4.50,0);
+\end{tikzpicture}
+}

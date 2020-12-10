@@ -1,0 +1,28 @@
+\notocchapter{Table of Adam}
+If we define the bias corrections, and the non-forgetting as the following:
+\begin{align}
+	B_{i}(x,t) &= \frac{x}{(1-\beta_{i}^{t})}, \\
+	M_{i}(v_1,...,v_t) &= \max (v_t, v_{t-1}).
+\end{align}
+We can write an overview of the different versions of \ac{Adam} as in table \ref{tab:optimizers}.
+%\begin{whole}
+\begin{table}
+	
+	$
+	\begin{array}{l|ll}
+		&  v_t & \theta_t - \theta_{t-1}  \\
+		\hline\\[0.5mm]
+		\text{Adam}    & B_2(\beta_2 \cdot v_{t-1} + (1-\beta_2) \cdot g_{t}^2)
+		&  - \alpha_t \frac{m_t}{\sqrt{{v_t}} + \epsilon} \\[3mm]
+		\text{NAdam}  & . & -  \frac{\alpha_t}{\sqrt{v_t} + \epsilon} \cdot (\beta_1 m_t  + B_1((1-\beta_1) g_t)) \\[3mm]
+		\text{Amsgrad}  & M(v_t) & . \\[3mm]
+		\text{PAdam}  & M(v_t) & - \alpha_t \frac{m_t}{(v_t)^p + \epsilon} \\[3mm]
+		\text{Yogi}  & B_2(v_{t-1} - (1-\beta_{2}) \text{sign}(\beta_2 v_{t-1} - {g_t}^2) {g_t}^2) & . \\[3mm]
+		\text{AdamW*} & . & - \alpha_t \frac{m_t}{\sqrt{{v_t}} + \epsilon} - w_d \cdot \theta_{t-1}\\[3mm]
+		\text{RAdam**}  & . & - \sqrt{\frac{(\rho_t - 4)(\rho_t - 2)\rho_\infty}{(\rho_\infty - 4)(\rho_\infty-2)\rho_t}} \alpha_t \frac{m_t}{\sqrt{{v_t}}} \\[3mm]
+		\text{AdaBound}  & . & - \text{Clip}(\frac{\alpha_t}{\sqrt{V_t}},\eta_l(t), \eta_u(t) ) \cdot m_t
+	\end{array}
+	$
+	\caption{* AdamW. ** RAdam.}
+	\label{tab:optimizers}
+\end{table}

@@ -1,0 +1,414 @@
+\chapter{Learning}
+\label{chap:learning}
+%In this chapter I will present my idea of the learning part of the broad field that is machine learning. A way to introduce the various components needed is to formulate the learning as a couple of questions that needs answering. Assuming we know what we want to learn, the first question we would like to answer is how will we know when we have learnt what we want, and how can we learn. 
+%a cost function, an optimization procedure
+%For learning part I will show various different tricks one can use to improve the learning process of the model.
+%\cite{mitchellMachineLearning1997}:
+% A computer program is said to learn from experience E with respect to some class of tasks T and performance measure P, if its performance at tasks in T, as measured by P, improves with experience E.
+%\cite{goodfellowDeepLearning2016}:
+% Nearly all deep learning algorithms can be described as particular instances of a fairly simple recipe: combine a speciﬁcation of a dataset, a cost function, an optimization procedure and a model.
+% Need
+%With learning I refer to the crucial step of turning a dataset on one hand and a model in the other into a
+%A very general definition of learning might be to define it as the process of fitting some model to 
+% Human has done the fitting of models to data in order to test theories.
+% Fitting
+% Statistical learning
+% Automate learning process.
+Machine learning as a field aims to automate learning.
+% this learning process is automated with machine learning.
+%In a simplified dualist view, machine learning lies on a spectrum from supervised to unsurpervised learning, depending on whether you have a ground truth available for learning, e.g. a label for classification.
+%The difference lies in whether the data you use for the learning is labelled according to the task you are trying to learn.
+% % Mitchell 1997 definition of learning.
+% Learning as a form of internalizing experience
+%a cost function, an optimization procedure
+The learning itself can be defined various ways, but keeping to our recipe from \cite{goodfellowDeepLearning2016}\sidenote{"Nearly all deep learning algorithms can be described as particular instances of a fairly simple recipe: combine a speciﬁcation of a dataset, a cost function, an optimization procedure and a model."}, the learning is a result of choosing a cost function and an optimization procedure.
+The cost function specifies what you are interested in learning, and the optimization procedure specifies how you will combine your data and model to learn it. 
+
+% Task and object
+% Learning -> cf and optim
+% Cf -> quantify experience
+% Quantify experience learning objevtive
+% Optimizer -> learn based on experience
+%In order to formalize this process I present the general theory of supervised learning (\secref{sec:suplearning}).
+First we will look at a definition of supervised learning (\secref{sec:suplearning}).
+%To answer these questions I will introduce loss functions in \secref{sec:loss-functions} which will be used as our optimization objective. 
+Then we will look at what we are learning by introducing the cost function\sidenote{I will use the term loss function and cost function interchangeably.} (\secref{sec:loss-functions}).
+%To optimize we use backpropagation which I will introduce in \secref{sec:backpropagation}. 
+Finally, different algorithms that use the first order derivatives to update the parameters are described, along with a custom combination of them (\secref{sec:optimizers}).
+% ALl works with backprob.
+The main work of reference for this chapter is the Deep Learning Book \cite{goodfellowDeepLearning2016}.
+\section{Supervised learning}
+\label{sec:suplearning}
+For a thorough exposition of what learning algorithms encompass I recommend \cite[see][sec 5.1]{goodfellowDeepLearning2016}.
+%A more formal definition of learning is given in \cite{mitchellMachineLearning1997}:
+%\textbf{Definition:} A computer program is said to learn from experience E with respect to some class of tasks T and performance measure P, if its performance at tasks in T, as measured by P, improves with experience E.
+
+%Without delving into statistical learning theory,
+There are two broad categories of learning: supervised and unsupervised learning. 
+For our purposes, it is enough to discuss supervised learning.
+The task of supervised learning is trying to model:
+\begin{align}
+	p(y|x),
+\end{align}
+where $y$ is the label, and $x$ the input to the model.
+%given in your training set for you to learn with.
+%$y$ can be both discrete or continuous. 
+If discrete values are used for $y$ to encode different categories we call it classification.
+%If discrete values are used to represent different categories, with no meaning attributed to the way numbers are distributed relative to each other, we call the task classification. 
+%Modelling of continuous labels is regression.
+%In our case the data was\sidenote{Painstakingly} labelled in order facilitate supervised learning.
+Since the data was\sidenote{Painstakingly} labelled, we are doing supervised learning.
+%, thus we are doing supervised learning.
+The target was classification approach, since it is fundamentally the binary question we are interested in answering for the real world usage of the Meat Master II.
+%After all, the question we were interested in answering was: Do, or do our windows not contain foreign objects?
+%we were interested in classifying whether our windows 
+%Now this could be tried answered both as a classification problem: Given two classes of windows, some with and some without foreign objects, which class do we belong to?
+%Or perhaps more contrived as a regression problem: How many pixels of our windows belong to foreign objects?
+
+
+% since this is what I imagine the real world usage of the Meat Master II comes down to. 
+We used one-hot encoding for my classification. Thus classification formally is the learning a function:
+\begin{align}
+	f: {\mathbb{R}}^n \to \mathbb{R}^k,
+\end{align}
+with $n=32^2$ and $k=2$. In our case with $X$ representing our data we have.
+\begin{align}
+	f(X) = z_i, \: \: i \in \{ 0,1 \}.
+\end{align}
+To get a final prediction from our output, $z_i$, we have to make some choice. 
+For our model, unless otherwise noted, the choice will be to take argmax of $z_i$.
+
+
+\section{Loss function}
+\label{sec:loss-functions}
+% what we optimize
+The loss function is what we optimize. 
+Thus it has to be constructed in a way that optimizing this results in our model learning.
+% We technically optimize a loss function.
+%Furthermore, in machine learning 
+We are not interested in only fitting our data, rather we want to learn the underlying phenomenon to generalize to unseen data.
+%Thus the evaluation of the approach is more remicsent of Karl Poppers falsification principle, and the way to falsify is to test on unseen data. 
+%Thus, the loss function
+The loss function is interesting in the sense that it serves as an expected loss on unseen data.
+Where we want to make $p(y|x)_{model} = p(y|x)_{True}$.
+% This is a surrogate for 
+% Maximum likelihood estimation sec 5.5
+%The loss function 
+% Negative log likehood
+% Minimize nll causes maximum likelihood estimation 
+%This we can write as wanting the $p(y|x,M) = p(y,x)$. Now  
+%In order to get a good measure for this we use the cross-entropy.
+We use the negative log likelihood as the cross-entropy loss function between the empirical distribution defined by the training set and probability distribution of our model.
+To derive this we follow the approach of main reference \cite[see][sec 3.13]{goodfellowDeepLearning2016}.  
+%\sidenote{Using cross-entropy is way is done in \cite{goodfellowDeepLearning2016}}
+%To get to it I will sketch the way it is presented in \cite{goodfellowDeepLearning2016}. 
+
+We start by defining the Shannon entropy as the expected information of a given distribution, $P(X)$, as:
+\sidedef{Shannon entropy}{}{
+	\begin{align}
+	H(x) &= -\mathbb{E}_{x \in P}[\log P(x)] \\
+	&= -\sum_i p_i \log p_i
+	\end{align}
+}
+From this we then define the Kullback-Leibler divergence, which is measure of the difference between two distributions, $P(X),Q(X)$, of the same random variable:
+\sidedef{Kullback-Leibler divergence}{}{
+	\begin{align}
+	D_{KL}(P || Q) &= \mathbb{E}_{x \in P}\left[\log \frac{P(x)}{Q(x)}\right] \\
+	&= \sum_i p_i \log p_i - \sum_i p_i \log q_i
+	\end{align}
+}
+This lets us define the cross-entropy as:
+\sidedef{Cross entropy}{}{
+	\begin{align}
+	H(P,Q) &= H(P) + D_{KL}(P || Q) \\
+	&= - \sum_i p_i \log q_i
+	\end{align}
+}
+Thus we see that cross-entropy is the term in $D_{KL}(P || Q)$ dependent of our model $Q(x)$. 
+The way we use the above, is by having $q_i$ being a the probability the model outputs for a given category, and $p_i$ being the ground truth, encoded as an one-hot vector.
+%\url{https://www.deeplearningbook.org/contents/optimization.html} \todo{Read book chapter 8, and introduce loss as the optimization objective.}
+% Maximum likelihood estimation.
+For the final output of the model, $z_i$, we use the softmax function to normalize it:
+%What typically happens is that for the final output of the model which will be $\mathbb{R}^k$ we use softmax which is a normalization of the outputs $z_i$\sidenote{Written the same way as in \cite{heBagTricksImage2019a}}:
+\sidedef{Softmax function}{}{
+\begin{align}
+	q_i = \frac{\exp{z_i}}{\sum_{j}^{k} \exp{z_j}} 
+\end{align}
+}
+% Soft-max as being motivated by Per hedegård.
+%In some sense the softmax normalization is looks like the Boltzmann distribution. Thus for the entropy of our outputs:
+%\begin{align}
+%	H_Q(x) &= - \sum_{i} q_i \ln q_i) \\
+%	q_i
+%\end{align}
+%When using constrained optimization making $\sum_{i} q_i = 1$. \todo{Citer Per Hedegård}
+\subsection{Label Smoothing}
+One issue\sidenote{Or feature depending on your view.} is the optimal solution to our optimization problem above.
+The use of negative log likelihood with the softmax reduces the loss function with assuming that $p_i$ is a one-hot encoding of our category we find that for the label $i$:
+\begin{align}
+	-\sum_{j} p_j \log q_j = - (z_i - \log{\sum_j \exp z_j} )
+\end{align}
+Thus, the negative log likelihood has maximum when $z_i^{*} \to \inf$. This is good since this mean we can keep training forever. It is bad for the exact same reason: Training forever will potentially lead to overfitting. Furthermore, we are not necessarily interested in encouraging our network extreme confidence in its predictions.\cite{szegedyRethinkingInceptionArchitecture2015}
+
+A remedy is to introduce label smoothing as done in \cite{szegedyRethinkingInceptionArchitecture2015}.
+The idea is to replace our labels by:
+\begin{align}
+	p_i' &= (1-\epsilon) \delta_{ij} + (1-\delta_{ij})\epsilon \: u(i)
+\end{align}
+where $\epsilon$ is a small number and $u(i)$ is a distribution that is independent of the label of the data points, such as $u(i) = 1/(k-1)$ as in \cite{heBagTricksImage2019a}. Now the optimal solution $z_i^{*}$ becomes:
+\begin{align}
+	z_j^* = \delta_{ij} \log{\frac{(k-1)(1-\epsilon)}{\epsilon}} + \alpha  
+\end{align}
+here $\alpha$ is a real number which depend on the implementation. Thus the model will converge a finite output. In the two papers cited for this section they found empirical improvements using label smoothing.
+\subsection{Regularization}
+\label{subsec:regop}
+%Here it makes sense to have all the L-norms. weight decay.
+One way to limit the degree to which a model can overfit is to limit the capacity of the model.
+Without going into details exactly what capacity means explicitly a simple approximation is the number of parameters of the model.
+One way to limit the capacity is done by adding a term to the loss function that penalizes the weights:
+%To limit the capacity of the model I used regularization, both in the loss function and in the components of the model. 
+%In the loss function, adding a term to limit the capacity of the model by penalizing the weights in some way.
+%This can be done as:
+\begin{align}
+	J = L + \alpha \Omega(\theta).
+\end{align}
+Here $J$ is the total cost function, with $L$ the loss term and $\Omega(\theta)$ the regularization.
+$\alpha$ determines the tradeoff between the two terms. In our case, $L^2$ regularization was used. Here, we penalize the model by its norm of the parameters unrolled into a vector.
+\begin{align}
+	\Omega(\theta) = ||\theta||^2
+\end{align}
+This limits the capacity of the model by adding a term in the gradient to keep the weights small. 
+Thus, the parameter-space of the model is constrained.
+% L1
+% L2
+% Optimizer section.
+\section{Optimizers}
+\label{sec:optimizers}
+%; learning rate, batch size and warm-up
+% optimization in general.
+The field of optimization is vast, and for our purposes we need only a tiny part which nevertheless play an outsized role. 
+%I am thinking of first order gradient based methods, or variations of gradient descent.
+That tiny part is the methods that rely on the gradient of the cost function to do gradient descent in the loss landscape.
+%Ranging from simple implementations of \ac{SGD} to using the second moments are in the end what does the heavy lifting for most of the deep learning.
+%Optimizers, ranging from a simple implementations of gradient descent to more complex algorithms using the second moments and/or derivatives are in the end directly responsible for most of the learning in deep learning. 
+Consigning us to first order gradient based methods, from \acf{SGD} to a series of optimizers using estimates of the second moments to modulate the learning rate, \acp{Adam}. 
+The optimizers are presented in approximately ascending order of complexity.\sidenote{Descending order of age.} 
+% Gradient of loss
+
+%As a starting point, lets write the total gradient of the full parameter space for the model as:
+%\begin{align}
+%	\nabla f(\theta(W)) = \oplus_{l} \oplus_{j(l)} \frac{\partial F}{\partial W_{j(l),(l)}^k{(l)}},
+%\end{align}
+As a starting point, if we define the total loss, $J(\theta;X)$ corresponding to a loss function, $J(\cdot)$, as a function of the dataset, $X$, and the parameters of our model, $\theta$, we can define the derivative of this loss with regards to the models parameters as:
+\begin{align}
+	\nabla_\theta J(\theta;X).
+\end{align}
+This gives us the following update rule for gradient descent: %\todo{Fix the notation in this chapter.}
+\sidedef{Gradient descent}{}{
+\begin{align}
+		\theta_{t+1} &= \theta_{t} - \eta \nabla_\theta J(\theta;X).
+\end{align}
+}
+Here we have introduced the \textit{learning rate} $\eta$, which controls the step size of the gradient descent.
+%\sidenote{A typical value for $\eta$ is $0.1$.}. \\
+This will be the building block of the methods to follow. 
+Furthermore, we tacitly assume that this gradient is possible to calculate which it is for the models described in this thesis.
+
+First, we will look at \ac{SGD} with and without momentum. 
+Momentum is the first moment of the gradient, and with it we can introduce estimates of the second moments and use both to create \ac{Adam}. 
+\ac{Adam} was not the first algorithm to use second order moments, but it has gained a lot of popularity, and spawned many derivates, some of which will be presented below.
+%I will review \ac{Adam} and some of its' many derivatives. 
+%Finally I will introduce AdaBound an optimizer trying to get the best of both worlds. 
+All proofs of convergence in convex and non-convex settings are beyond the scope of this thesis, and as such we refer the reader to the references. 
+%I will test the algorithms in my problem setting, and choose the one with the best performance. 
+\subsection{Stochastic gradient descent}
+%\todo{Read the two references cited here, and perhaps check them with schimdthuber almenac.}
+When using gradient descent for very large datasets, it is efficient to batch the data into smaller groups, $X_B$. If the batches are sampled randomly from the dataset we have \ac{SGD} \cite{robbinsStochasticApproximationMethod2007},\cite{kieferStochasticEstimationMaximum1952}. 
+Following \cite{ruderOverviewGradientDescent2017} we can write \ac{SGD} as:
+\sidedef{\ac{SGD}}{}{
+\begin{align}
+	\theta_{t+1} &= \theta_{t} - \eta \nabla_\theta J(\theta; X_B).
+\end{align}
+}
+\subsubsection{Momentum}
+Momentum, $m_t$, \cite{qianMomentumTermGradient1999} is used to increase the rate of convergence of the optimization. 
+The idea is that the best direction in loss space of update is obtained by keeping a running, exponentially decaying, average of the past gradient steps. 
+The intend is that the part of the update that is due to random noise is averaged out.
+\begin{align}
+	m_t 	     &= \gamma m_{t-1}	+ \eta \nabla_\theta J(\theta; X_B),\\
+	\theta_{t+1} &= \theta_{t} -  m_t ,
+\end{align}
+with $\gamma$ determining the exponential decay of past gradients, and a typical value is $\gamma= 0.9$.
+From the above it is evident that part of the update at time $t$ was already known at $t-1$. 
+Namely, the first part of the momentum $\gamma m_{t-1}$ which is $\gamma$ times the update at the last timestep. 
+%This one can use to do this update before on derives the gradient which is called Nesterov momentum \cite{nesterovMethodSolvingConvex1983a}, introduced in deep learning by \cite{sutskeverImportanceInitializationMomentuma}. 
+This part can we subtract from the momentum before taking the derivative.
+This is called Nesterov momentum \cite{nesterovMethodSolvingConvex1983a}, \cite{sutskeverImportanceInitializationMomentuma}. 
+We can write:
+\sidedef{\ac{SGD} with Nesterov momentum}{}{
+\begin{align}
+m_t 	     &= \gamma m_{t-1}	+ \eta \nabla_\theta J(\theta - \gamma m_{t-1};X_B) \\
+\theta_{t+1} &= \theta_{t} - m_t  
+\end{align}
+}
+Which, for later convenience can be rewritten as \cite{dozatINCORPORATINGNESTEROVMOMENTUM2016}:
+\begin{align}
+g_t 		 &= \nabla_\theta J(\theta_{t-1}; x^{i}, y^{i}) \\
+m_t 	     &= \gamma m_{t-1}	+ \eta g_t \\
+\theta_{t} &= \theta_{t-1} - (\gamma m_t + \eta g_t ),
+\end{align}
+%\todo{Rewrite the above equation to match eq. 3 in \cite{dozatINCORPORATINGNESTEROVMOMENTUM2016}}
+assuming $m_0 =0$, i.e. the momentum is initialized to zero.
+\subsection{Adam \& its derivatives}
+% Which did you choose?
+Expanding the estimation of moments to also include second order moments, we can get different algorithms suchs as AdaGrad, RMSprop and \ac{Adam}. 
+Since RMSprop is Adam with $\beta_1 = 0$ and AdaGrad is very similar, we focus on the family of \acp{Adam} which are the ones used in this thesis.
+Some of the variations can be seen in the list to the left. For the following $\alpha$ is used in place of $\eta$ for the learning rate.
+%{Justify which Adams you chose to spotlight.}
+\marginelement[-4]{
+\acp{Adam} family
+\begin{marginenum}
+	\item Adam  \cite{kingmaAdamMethodStochastic2017}  
+	\item NAdam  \cite{dozatINCORPORATINGNESTEROVMOMENTUM2016}
+	\item Amsgrad \cite{reddiCONVERGENCEADAM2018}
+	\item PAdam \cite{chenPadamClosingGeneralization2018}
+	\item AdamW \cite{loshchilovFixingWeightDecay2018}
+	\item Yogi \cite{zaheerAdaptiveMethodsNonconvex2018}
+	\item RAdam \cite{liuVarianceAdaptiveLearning2020}
+	\item AdaBound \cite{luoAdaptiveGradientMethods2018}
+	\item AdaBelief \cite{zhuangAdaBeliefOptimizerAdapting2020}
+\end{marginenum}
+}
+\subsubsection{Adam}
+\ac{Adam} was in the words of its authors \cite{kingmaAdamMethodStochastic2017} intended to combine the advantages of AdaGrad, RMSprop, and as such serves as our starting point of optimizers with adaptive learning rate.
+\sidenote{As far as the author know whether \ac{Adam} manages to combine these advantages and always performs better than the previous two is not necessarily the case.} 
+The idea is to estimate the second order moments and use these to normalize the learning rate individually for each parameter. 
+The second order moments are equal to the uncentred variance.
+Thus, a large variance in the gradients for some parameters should correspond to a low learning rate.
+The concrete formula is:
+%\todo{Make big table with adams on the columns and terms on the rows to show case differences.}
+\begin{align}
+	g_t &= \nabla_\theta J(\theta_{t-1}; X_B) \\
+	m_t &= \beta_1 \cdot m_{t-1} + (1-\beta_1) \cdot g_t \\
+	v_t &= \beta_2 \cdot v_{t-1} + (1-\beta_2) \cdot g_{t}^2 \\
+	\hat{m}_t &= m_t / (1-\beta_{1}^t) \\
+	\hat{v}_t &= v_t / (1-\beta_{2}^t) \\
+	\theta_t  &= \theta_{t-1} - \alpha_t \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}.
+\end{align}
+
+The exponentially decaying averages, $m_t, v_t$ now have distinct parameters for each estimate $\beta_1, \beta_2$ with out of the box values of $0.9, 0.999$. Furthermore, to get an unbiased estimate $\hat{m}$ is needed instead of $m$ directly, and likewise for $\hat{v}_t$. Finally, $\epsilon$ is included for numerical stability, with a typical value of $\epsilon=1e-8$ \cite{kingmaAdamMethodStochastic2017}.
+%We can rewrite the momentum term and uncentered variance terms as:
+%\begin{align}
+%	\hat{m}_t &= \frac{ (1-\beta_1) \sum_{i=1}^{t} \beta_{1}^{t-i} g_i}{1-\beta_1^t} \\
+%	\hat{v}_t &= \frac{(1-\beta_2) \sum_{i=1}^{t} \beta_{2}^{t-i} g_i^2}{1-\beta_2^t}
+%\end{align}
+This algorithm allows the second order momentum to adapt the rate of change for each parameter. This makes the magnitude of the update to the parameters invariant to rescaling of the gradient. It creates a natural bound on the step size:
+\begin{align}
+	\frac{\hat{m}_t}{\sqrt{\hat{v}_t}} \sim \frac{g_t}{g_t}
+\end{align}
+\ac{Adam} while popular, shows the best performance in natural language tasks, whereas in image tasks \ac{Adam} is outperformed by \ac{SGD} \cite{wilsonMarginalValueAdaptive2017}.
+
+%As with \ac{SGD} so too with \ac{Adam} can we introduce Nesterov momentum, as in \cite{dozatINCORPORATINGNESTEROVMOMENTUM2016}. 
+\subsubsection{NAdam}
+We can introduce Nesterov momentum in \ac{Adam} as in \ac{SGD} \cite{dozatINCORPORATINGNESTEROVMOMENTUM2016}.
+Doing so will modify Adam to look like:
+\begin{align}
+	\theta_t  &= \theta_{t-1} -  \frac{\alpha_t}{\sqrt{\hat{v}_t} + \epsilon} \cdot (
+	\underbrace{
+		\beta_1 \hat{m}_t 
+	}_\text{The momentum term from t+1} + \underbrace{(1-\beta_1) g_t
+	}_\text{Gradient part } 
+	)
+\end{align}
+The motivation for introducing Nestorov momentum is the same as for \ac{SGD}. It serves as an improved form of momentum \cite[see][sec 2]{dozatINCORPORATINGNESTEROVMOMENTUM2016}.
+%If we use the second form of the Nesterov momentum.
+%\todo{Remember to look at boundary, but the only thing need to update the full m is the gradient part, the rest was done in last time step. Also this should surely modify the adaptible parameter, but it is funnily enough not included in the paper.}
+%This is true since:
+%\begin{align}
+%	\hat{m}_t &= \frac{ (1-\beta_1) \sum_{i=1}^{t} \beta_{1}^{t-i} g_i}{1-\beta_1^t} \\
+%	 &=(1-\beta_1) g_t + \beta_1 \cdot \hat{m}_{t-1} \\
+%	 & \implies \\
+%	 \beta_1 \hat{m}_t + (1-\beta_1) g_t &=0 
+%\end{align}
+%Amsgrad (\cite{reddiCONVERGENCEADAM2018}) modifies $\hat{v}_t$ to be:
+%\begin{align}
+%\hat{v}_t &= \max (	\hat{v}_{t-1}, \hat{v}_{t})
+%\end{align}
+%Now one can modify the squareroot in the adaptible part to get PAdam \cite{chenPadamClosingGeneralization2018}
+%\begin{align}
+%	\hat{v}_t &= \max (	\hat{v}_{t-1}, \hat{v}_{t}) \\
+%	\theta_t  &= \theta_{t-1} - \alpha_t \frac{\hat{m}_t}{{\hat{v}_t}^p + \epsilon}
+%\end{align}\todo{Fix the hat here.}
+%Yogi
+%\begin{align}
+%	v_t &= v_{t-1} - (1-\beta_{2}) \text{sign}(v_{t-1} - {g_t}^2) {g_t}^2
+%\end{align}
+%\subsubsection{Weight decay vs regularization}
+%For algorithms with adaptible momentum, weight decay is not the same as L2 regularization! \cite{loshchilovFixingWeightDecay2018}
+
+\subsubsection{AdamW}
+If we use \ac{Adam} as is, the regularization by $L^2$ also gets a adaptive learning rate.
+Thus weight decay and $L^2$ decouple, where by weight decay the meaning is the explicit penalizing of large parameters.
+This was noticed in \cite{loshchilovFixingWeightDecay2018}, and they proposed AdamW to reintroduce the unmodified weight decay into AdamW. 
+This entails removing the $L^2$ term from the loss function, and calculate the update it gives as a separate step in the optimizer.
+%notices that the L2 loss doesnt equal weight decay in \ac{Adam} since this term also is modulated by the adaptive learning rate. Thus AdamW explicit insert weightloss after doing the normal update \cite{loshchilovFixingWeightDecay2018}.
+
+\subsubsection{RAdam}
+It is found empirically that it is important for \ac{Adam} to have some form of warm-up of the learning rate.
+This means keeping the learning rate low for the first epoch, and slowing increasing afterswards. 
+This is done in order to stabilize the estimates of the second momentums.
+In an attempt to incorporate warm-up more directly into \ac{Adam}, Rectified Adam (RAdam) was created \cite{liuVarianceAdaptiveLearning2020}. The difference is that we introduce a term, $\rho_t$: 
+\begin{align}
+	\rho_\infty &= \frac{2}{1-\beta_{2}} - 1, \\
+	\rho_t      &= \rho_\infty - 2 t \frac{\beta_{2}^t}{1-\beta_{2}}, 
+\end{align} 
+which we can use to calculate $r_t$ to replace the warm-up heuristic as:
+\begin{align}
+	&\textbf{if}\:& \rho_t > 4: & \\ 
+	&&l_t 	    &= \sqrt{\frac{(1-\beta_{2}^t)}{v_t}}\\
+	&&r_t         &= \sqrt{\frac{(\rho_t - 4)(\rho_t - 2)\rho_\infty}{(\rho_\infty - 4)(\rho_\infty-2)\rho_t}} \\
+	&&\theta_{t} &= \theta_{t-1} - \alpha_t r_t \hat{m}_t l_t \\
+	&\textbf{else}& &\\
+	&&\theta_{t} &= \theta_{t-1} - \alpha_t \hat{m}_t 
+\end{align}
+
+\subsubsection{AdaBound}
+Now AdaBound \cite{luoAdaptiveGradientMethods2018} is another algorithm that tries to be the heir to \ac{Adam}. 
+AdaBound tries to bridge the gap between \ac{Adam} and \ac{SGD} by literally closing it as the optimizer iterates.
+This is done by clipping the parameter update to lie between two bounds, which you let converge.
+Thus, when the upper and lower bound converge there is no adaptability left in the learning rate, leaving one with \ac{SGD}.
+The main changes can be written as:
+\begin{align}
+	\hat{\eta}_t &= \text{Clip}(\frac{\alpha_t}{\sqrt{v_t}},\eta_l(t), \eta_u(t) ) \\
+	\eta &= \frac{\hat{\eta}_t}{\sqrt{t}} \\
+	\theta_{t+1} &=\theta_{t} - \eta \hat{m}_t
+\end{align}
+Where $Clip(x, \cdot)$ output forces $x$ to lie between to two boundaries given. For boundaries they use:
+\begin{align}
+	\eta_l(t) &= 0.1 - \frac{0.1}{(1-\beta_{2})t+1},\\
+	\eta_u(t) &= 0.1 + \frac{0.1}{(1-\beta_{2})t},
+\end{align}
+as the converging upper and lower bound.
+%\subsection{Ranger}
+%\subsection{AdaBelief}
+\subsubsection{AdaBelief}
+AdaBelief is a brand new version of \ac{Adam} \cite{zhuangAdaBeliefOptimizerAdapting2020}. The main change from \ac{Adam} is that here they use the centred second order moment. Thus we have:
+\begin{align}
+	v_t &= \beta_2 \cdot v_{t-1} + (1-\beta_2) \cdot (g_{t} - m_t)^2
+\end{align}
+They find that this simple change, with no extra parameters introduced, gives significantly better performance.
+
+\subsubsection{AdamRNW}
+\label{sec:adamrnw}
+Since all the changes mentioned in NAdam, AdamW and RAdam seemed well justified, and somewhat orthogonal, they were combined into AdamRNW, which was tested along the other algorithms.
+RAdam already had weight decoupling as an option, so my contribution was only to add Nesterov momentum to it. 
+\subsubsection{Comparison}
+\begin{figure}[h]
+	\begin{sidecaption}[Adams.]{A comparison of the three versions \ac{Adam} that I thought was in contention to be used. Plotted is the mean of a 5-fold validation accuracy as a function of epochs.}[fig:adacompare]
+		\centering
+		\includegraphics[scale=1.0]{./figures/chapter5/ch5_adams.pdf}
+	\end{sidecaption}
+\end{figure}
+AdaBound, AdamRNW and AdaBelief is compared in \figref{fig:adacompare}.
+The learning rate used, $0.001$, was the same for all, and as such this is not that conclusive. But it seems that they all have very similar performance, and as such I felt justified in using my own, AdamRNW.
+For these result I divided the learning rate by $5$ every sixth epoch. 

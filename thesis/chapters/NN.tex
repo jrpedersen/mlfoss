@@ -1,0 +1,313 @@
+\chapter{Neural Networks}
+\label{chap:nn}
+% Need
+%There exist many different models and the ones I will be used are called convolutional neural nets. These consist of a few different subparts, and I will introduce various choises one have here, and explain why I ended up designing my model as I did. 
+The term model has been mentioned countless times by this point, but the reference is to some specific kinds of models.
+We have worked with variations of neural networks for this thesis.
+%In general neural networks can be described as linear functions with outputs given as inputs to some non-linearity. 
+% Need to be able to take the gradient with respect to the model.
+% Non-convexity
+% Terms that need defining
+% layers
+The model is built of consecutive layers which represents compositions of functions.
+% Nodes
+Each layer consists of a number of nodes, or featuremaps, which is calculated based on the connections in our network.
+% Connections
+% Activatioin function
+% Miscellaneous
+%   Norm & Reg
+
+% Task & Object
+In the first section neural networks are introduced with two different structures of networks, namely the \ac{FCNN}, and the \ac{CNN} (\secref{sec:connections}).
+Then we will look at the activation functions, which are crucial to the elevate the models from their linearity (\secref{sec:nonlinear}).
+Important for larger models with many layers is the way one normalizes the inner workings. Thus we will look at batch normalization and weight normalization as two options (\secref{sec:normal_model}).
+Following last chapter we know that regularization plays an important role in the capacity of the model, one way to introduce regularization in the model is introduced in (\secref{sec:reg_model}).
+Finally the model used is presented (\secref{sec:mymodel}).
+%Finally we will look how to calculate the gradients of the model to use with out optimizers (\secref{sec:backprob}).
+%And finally I will show how backpropagation works.
+\section{Network Connections}
+\label{sec:connections}
+In some sense neural networks are an extension of modelling hyper-planes, with the addition of some non-linearity on top. 
+The next issue is how to connect these linear functions. Below we will look at two ways, fully connected neural networks, and a special case of these which is the convolutional neural network.
+They are called neural since each output, of a linear sum with an activation function on top of it, resembles a neuron. 
+%The connections of the networks determines how things are calculated. 
+For our purposes we will only look at feedforward networks. 
+In feedforward the input is transformed through different layers to a layer giving a final output.
+Crucially, the connections can only go from an earlier layer to a later. 
+Networks which allows backwards connections or recurrent connections exists and are called recurrent neural networks.
+In the model two types of connections between layers are used.
+\subsection{Fully connected neural network}
+\sidefigure[Fully Connected Neural Network]{A \ac{FCNN} with 2 hidden layers. The arrows represent a weight. We see that each neuron from each layer is connected to all the neurons from the previous. Illustration from \cite{srivastavaDropoutSimpleWay2014}}[fig:fcnn]
+{\includegraphics[width=\linewidth]{./figures/chapter6/fcnn.png}}
+The basic building block of a \acf{FCNN} is a linear combination of all inputs to all outputs.
+This can be represented for each node $i$ as:
+\begin{align}
+	z_i^{(l+1)} &= \bar{w}_i^{(l+1)}y^l + b_i^{l+1},\\
+	y_i^{(l+1)} &= \sigma(z_i^{(l+1)}),
+\end{align}
+with $l$ representing a layer, and $y^0$ being the inputs. The weights $w_i^{(l+1)}$, with the bias term $b_i^{l+1}$ can be collected into one matrix $\textbf{w}$.
+$\sigma(z_i)$ is the activation function which is responsible for introducing the non-linearity, and is something we will return to in the next section. 
+%For now we look at $y^l$ and just notices that this is the result of an affine transformation. 
+The fully connected part is due to the fact that each element of $y^k$ depends on all features of the preceding layer $u^j$, see \figref{fig:fcnn}.
+\subsection{Convolutional neural network}
+\begin{figure}[h]
+	\begin{sidecaption}[Conv.]{The result of a $3 \times 3$ convolution is shown. Illustration from \cite{podareanuBestPracticeGuide}. }[fig:conv]
+		\antimpjustification
+		\centering
+		\includegraphics[width=\linewidth]{./figures/chapter6/conv.png}
+	\end{sidecaption}
+\end{figure}
+%Illustration from \cite{podareanuBestPracticeGuide}
+Convolutions of images with a certain filters or kernel has been standard practice in computer vision for many years. 
+Convolutions work by apply a filter as can be seen in \figref{fig:conv}. Formally, applying a convolution consisting of a given kernel, $K(k,l)$ to a image of some dimensionality, $I(i,j)$ one gets a new featuremap, $FM(i,j)$, of the size:
+\begin{align}
+	FM(i,j) = \sum_{k} \sum_{l} K(k,l) I(i+k, j +l),
+\end{align}
+where the sum is over the kernel.\sidenote{This is techically the cross-correlation, which is related to the convolution by flipping the kernel.}
+The kernel is applied to all areas of the input dependent on the stride and padding used.
+Stride determines the interval with which the kernel is used.
+Padding is the addition of zeros to the edges to possibly allow moving the center of a kernel along the edges.
+% What makes it a convolutional neural network.
+To get a \ac{CNN} we stack layers of convolution with activation functions applied in between.
+%\acp{CNN} revolutionized computer vision back 2012. 
+With convolutions in the network you can learn the traditional feature engineering part of computer vision itself, without having to do it explicitly manually.
+%Depending on who you ask either schmidthuber or le cun revolutionized the field of computer vision by winning a competition using Convolutional Neural Networks back 2012. With convolutions in the network you can learn the traditional feature engineering part of computer vision itself without having to do it explicitly your self.
+Thus, using convolutions, one gets a new way of creating linear combinations of inputs, with the big difference being that each new feature created has some sense of restriction of neighbourhood of influence. 
+Furthermore, each kernel is applied many times to the input in different places.
+In that sense it is a strong inductive bias to create nodes with weight sharing. \cite[see][chapter 9]{goodfellowDeepLearning2016} 
+\subsection{Max-pooling}
+\sidefigure[Max-pool]{An example of using max-pooling with a kernel of $2,2$ and a stride of $2$. Illustration from \cite{podareanuBestPracticeGuide}.}[fig:maxpool]
+{\includegraphics[width=\linewidth]{./figures/chapter6/maxpool.png}}
+When applying max-pooling of a size $2,2$ with a stride of $2$, which is what we use, to a matrix we divide it into $2,2$ squares and take the maximum of each as the result.
+An example can be seen in \figref{fig:maxpool}.
+The resulting dimensions size of the featuremaps is reduced by two in each direction. 
+Thus, max-pooling is a way to reduce the dimensionality of the feature maps.
+Taking the maximum also introduces some kind of invariance to small local translations. 
+This can of course be generalized to kernels of any size and stride.
+%For some kernel size it works by returning the maximum of the inputs, with an example in Fig. \ref{fig.maxpool}.
+%For convolutional networks we get:\\
+%\section{Neural networks}
+%\subsection{CNN}
+%\cite{heDeepResidualLearning2015}
+%\cite{tompsonEfficientObjectLocalization2015}
+%\cite{szegedyGoingDeeperConvolutions2015}
+%\cite{szegedyInceptionv4InceptionResNetImpact2017}
+%\cite{azulayWhyDeepConvolutional2019}
+%\cite{huangSNDCNNSelfnormalizingDeep2020}
+%\subsubsection{Convolutions}
+%\subsubsection{Max pooling}
+%\subsubsection{Differential programming}
+%\subsection{Activation functions}
+\subsection{Backpropagation}
+\label{sec:backprob}
+Backpropagation is basically the chain rule of derivatives applied at large.
+% Nowadays automated
+As mentioned, everything is implemented in PyTorch which handles the backpropagation automatically.
+% Building blocks above each differentiable 
+Thus, I have chosen not to derive backpropagation for each module presented, but instead refer interested readers to \cite{goodfellowDeepLearning2016}, and the other cited sources of this chapter.
+%\begin{marginfigure}
+%	\missingfigure{Backprop}%}
+%	\caption{Figure showing backpropagation}
+%	\label{fig.backprop}
+%\end{marginfigure} 
+%Backpropagation is basically the chain rule of derivatives applied at large. If the network we are working with aims to optimize some function $F$ we can calculate.
+%\begin{align}
+%	\frac{\partial F}{\partial W_{j,(N)}^k}  &= \frac{\partial F}{\partial u^{\alpha_{(N)}}} \cdot \frac{\partial u^{\alpha_{(N)}}}{\partial y^{\beta_{(N)}}} \cdot \frac{\partial y^{\beta_{(N)}}}{\partial W_{j,(N)}^k} \\
+%	\frac{\partial F}{\partial W_{j,(N)}^k}  &= \frac{\partial F}{\partial u^{\alpha_{(N)}}} \cdot \frac{\partial u^{\alpha_{(N)}}}{\partial y^{\alpha_{(N)}}} \cdot \delta_{k \alpha} \cdot u^{j_{(N-1)}} \\
+%	\frac{\partial F}{\partial W_{j,(N)}^k}  &= \frac{\partial F}{\partial u^{k_{(N)}}} \cdot \frac{\partial u^{k_{(N)}}}{\partial y^{k_{(N)}}} \cdot u^{j_{(N-1)}}
+%\end{align}
+%Now the order becomes apparent when you calculate the update due to weights from the second last layer.
+%\begin{align}
+%	\frac{\partial F}{\partial W_{j,(N-1)}^k}  &= \frac{\partial F}{\partial u^{\alpha_{(N)}}} \cdot \frac{\partial u^{\alpha_{(N)}}}{\partial y^{\alpha_{(N)}}} \cdot \frac{\partial y^{\alpha_{(N)}}}{\partial u^{\beta_{(N-1)}}} \cdot \frac{\partial u^{\beta_{(N-1)}}}{\partial y^{\beta_{(N-1)}}} \cdot \delta_{k \beta} \cdot u^{j_{(N-2)}} \\
+%	\frac{\partial F}{\partial W_{j,(N-1)}^k}  &= \frac{\partial F}{\partial u^{\alpha_{(N)}}} \cdot \frac{\partial u^{\alpha_{(N)}}}{\partial y^{\alpha_{(N)}}} \cdot \frac{\partial y^{\alpha_{(N)}}}{\partial u^{k_{(N-1)}}} \cdot \frac{\partial u^{k_{(N-1)}}}{\partial y^{k_{(N-1)}}} \cdot u^{j_{(N-2)}} 
+%\end{align}
+%
+%We can immediately see that a fair number of terms are reusable, and thus it lead one to think of the neural network as a graph, where as we forward propagate, it is naturally at the same to calculate the factor of each node corresponding to what we will need in the backpropagation.\\
+%
+%Depending on which order you calculate the matrix product you can either do matrix multiplications all the way, or have to do vector matrix multiplications.\\
+%\cite{snoekPracticalBayesianOptimization}
+%\cite{geigerScalingDescriptionGeneralization2020}
+%
+%
+\section{Non-linearity}
+\label{sec:nonlinear}
+%\subsection{Activation functions}
+The non-linearity is introduced with the activation functions.
+Why activation functions?
+The activation functions are the key to the neural network. 
+Without these, consecutive layers of linear combinations of features would only result in one grand linear combination. 
+Thus the activation function, and more generally, the algorithms used between layers of linear combinations or filters, are the key to introducing non-linearity to the model. 
+The activation functions have historically taken many different shapes and even to this day new functions are continually developed. 
+% Edit in the introduction of relu.
+We introduce the one we have been using, \ac{ReLU} \cite{nairRectifiedLinearUnits}.
+%, and ending up with what I perceive to be the most exiting recent method, the scaled exponential linear unit\cite{klambauerSelfNormalizingNeuralNetworks2017} (SELU).\\
+%A possible biological motivation for the activation functions come from the neural potential in the brain. Neurons show behaviour where when a certain activations threshold is crossed, they fire all at once. Thus the first activation functions such as the Sigmoid where initially modelled very steeply, as to mimic this behaviour. With larger nets, the efficiency became paramount though, which favours other simpler functions.
+\subsection{ReLU}
+\sidefigure[ReLU]{A plot of \ac{ReLU}.}[fig:relu]
+{\includegraphics[scale=1.]{./figures/chapter6/relu.pdf}} 
+In the earlier days of deep learning the activation functions used were the sigmoid, or tanh \cite{yamashitaConvolutionalNeuralNetworks2018}.
+A simpler alternative exists which is the \ac{ReLU}.
+The simplicity makes the network get sparse representations. 
+Furthermore, the computations are cheaper with the \ac{ReLU}, and it reduces the chance of vanishing gradient \cite{glorotDeepSparseRectifier2011}.
+The ReLU can be formally written as: 
+\begin{align}
+\text{ReLU}(x) = \sigma(x) = \text{max}(x,0).%\\
+%\partial_x \text{ReLU}(x) &= \Theta(x) \text{for} x \neq 0 
+\end{align}
+%Where $\Theta(x)$ is the Heaviside step function, with $\Theta(0)$ being undefined in this case\todo{Make marginplot figure}. \\
+A plot of the activation function can be seen in \figref{fig:relu}.
+The simplicity of ReLU makes it extremely efficient and it has all but replaced earlier activation functions such as the sigmoid.
+Since its inception, various new modifications to \ac{ReLU} has been proposed.
+Nevertheless, I ended up using the \ac{ReLU} and thus we will not take a deeper look at activation functions.
+One possible downside to this choice is readily apparent in the fact that the function can turn negative inputs off, thus leading neurons to become inactive. 
+Thus for the last layer \ac{ReLU} is not used.
+%\todo{Find reference for this}. This inspirred the following modifications.
+%\subsubsection{Leaky ReLU}
+%The leaky ReLU is\todo{Find paper on leaky relu}:
+%\begin{align}
+%\text{ReLU}(x) &= \text{max}(x,0) + \lambda\text{min}(x,0)\\
+%\partial_x \text{ReLU}(x) &= \Theta(x) + \lambda \Theta(-x) \text{for} x \neq 0 
+%\end{align}
+%We immediately see that the main difference now is that negative outputs contribute, and thus can be back-propagated.\\
+%\subsubsection{SELU}
+%The scaled exponential linear unit, is based on the exponential linear unit\todo{Check the correct way to write ELU}:
+%\begin{align}
+%	\text{ELU}(x) = \Theta(x)  x + \Theta(-x) (\alpha \exp^x - \alpha) 
+%\end{align}
+%If one scales the two terms with respectively $\lambda, \alpha$ one can get:
+%\begin{align}
+%	\text{SELU}(x) &= \lambda (\Theta(x)  x + \Theta(-x) (\alpha \exp^x - \alpha) ) \\
+%	\partial_x \text{SELU}(x) &= \lambda (\Theta(x) + \Theta(-x) \alpha \exp^x )
+%\end{align}
+%Now the magic is that this function makes the network self normalizing. Thus it can replace batch normalization and it has been shown to perform great\cite{zhangEffectivenessScaledExponentiallyRegularized2018}
+%\cite{madasuEffectivenessSelfNormalizing2019}\\
+%. \todo{write formal definition of self-normalizing networks. Alternatively include the full proof.}
+%\subsubsection{Swish}
+%\begin{align}
+%\text{Swish}(x) &= x \cdot (1+\exp(-\beta x))^{-1} \\
+%\partial_x \text{Swish}(x) &= \beta \cdot \text{Swish}(x) + (1+\exp(-\beta x))^{-1} \cdot (1-\beta \cdot \text{Swish}(x))
+%\end{align}
+%\subsubsection{Mish}
+%The mish and the swish are two new activation functions which I have also looked at.
+%\begin{align}
+%\text{Mish}(x) &= x \cdot \tanh(ln(1+\exp^x)) \\
+%\partial_x \text{Mish}(x) &= \frac{\exp^x \omega}{\delta^2}\\
+%\omega &= 4(x+1) + 4 \exp^{2x} + \exp^{3x} + \exp^{x}(4x+6) \\
+%	\delta &= 2\exp^{x} + \exp^{2x} + 2
+%\end{align}
+%
+%\subsubsection{Comparison}
+%My comparison of how the algorithms perform with chosen algorithms
+%\subsubsection{Activation functions}
+%Relu and selu important
+%\cite{klambauerSelfNormalizingNeuralNetworks2017}
+%\cite{zhangEffectivenessScaledExponentiallyRegularized2018}
+%\cite{madasuEffectivenessSelfNormalizing2019}
+\section{Normalization}
+\label{sec:normal_model}
+We have already seen that standardization of the inputs to the model improves the results (\secref{sec:standardization}). 
+When constructing models consisting of multiple layers, each layer serves as an input to the next, and one might naturally think that standardization might also have a role to play here.
+Furthermore, these inputs change during training so some running standardization might be needed.
+This is defined as Internal Covariate Shift in \cite{ioffeBatchNormalizationAccelerating2015a}, and their proposed solution is the addition of Batch Normalization.
+Another way to normalize is to use Weight Normalization \cite{salimansWeightNormalizationSimple2016} which reparametrizes the weights in a smart way.
+Below we will explore both these approaches.
+\subsection{Batch Normalization}
+Batch Normalization \cite{ioffeBatchNormalizationAccelerating2015a} introduces another set of parameters to learn, namely the parameters to normalize each internal input.
+Typically applied directly after the convolutional operation, for each output $x$ of a convolution we have for $BN_{\gamma,\beta}(x)$
+\cite{santurkarHowDoesBatch2019}:
+\begin{align}
+	BN_{\gamma,\beta}(x) = \gamma \frac{x-\mu_B}{\sqrt{\sigma_B^2 + \epsilon}} + \beta
+\end{align}
+where $\gamma, \beta$ are learned parameters, and $\epsilon$ needed for numerical stability. 
+During training $\mu_B,\sigma_B^2$ is the mean and variance estimated for the mini-batch. 
+Thus Batch Normalization both normalizes outputs, and at the same time introduces a shift and scaling after the normalization, to keep the networks expressive power. 
+For inference, the mean and variance are fixed, and are population wide estimates.
+This is done by keeping a running mean of $\mu_B,\sigma_B^2$ during training as:
+\begin{align}
+	\mathbb{E}[x] &= \mathbb{E}_B[\mu_B] \\
+	\mathbb{V}[x] &= \frac{m}{m-1} \mathbb{E}_B[\sigma_B^2]
+\end{align}
+Thus for inference we get:
+\begin{align}
+		BN_{\gamma,\beta}^{inf}(x) = \gamma  \frac{x -\mathbb{E}[x]}{\sqrt{\mathbb{V}[x] + \epsilon}} + \beta
+\end{align}
+This is an enormously successful addition to deep models, and is used everywhere in deep convolutional neural networks \cite{santurkarHowDoesBatch2019} \cite{frankleTrainingBatchNormOnly2020a}.\sidenote{So successful that as of writing this \cite{ioffeBatchNormalizationAccelerating2015a} has been cited $\approx 22000$ times since 2015.}
+%\cite{ioffeBatchNormalizationAccelerating2015}
+%\subsubsection{Weight normalization}
+%\cite{salimansWeightNormalizationSimple}
+%\begin{marginfigure}
+%  \missingfigure{BN, and WN}%}
+%\caption{Figure showing/explaining Batch Normalization and Weight Normalization.}
+%\end{marginfigure} 
+\subsection{Weight normalization}
+Weight normalization\cite{salimansWeightNormalizationSimple2016} can be viewed as an alternative to Batch Normalization\sidenote{Both can be used at the same time, so not an exclusive alternative.}. We split the vectors resembling each weight into two components, namely a length and a direction. This means that for a weight $\textbf{w}$ from some operation of our total weights $\theta$ we reparametrise it into:
+\begin{align}
+	\textbf{w} = \frac{g}{||\textbf{v}||} \textbf{v}.
+\end{align}
+Thus we have increased the numbers of parameters by one by decoupling the length of weight, $g$, from the spatial orientation, $\textbf{v}$. 
+This is a normalization of the weights as well, and \cite{salimansWeightNormalizationSimple2016} find it to speed the convergence of the model up.
+\section{Regularization}
+\label{sec:reg_model}
+Regularization is any modiﬁcation we make to a
+learning algorithm that is intended to reduce its generalization error but not its
+training error by constraining the capacity.
+In \secref{subsec:regop} we looked at how this could be done with the loss function.
+It is also possible to incorporate regularization directly in the model which is what we will look at now.
+\subsection{Dropout}
+\sidefigure[Dropout]{Dropout visualized. The arrows, representing weights, are randomly dropped during training. Illustration from \cite{srivastavaDropoutSimpleWay2014}}[fig:dropout]
+{\includegraphics[width=\linewidth]{./figures/chapter6/dropout1.png}}
+Dropout \cite{hintonImprovingNeuralNetworks2012} is a technique that aim to increase a neural networks ability to generalize. It is related to the method of adding noise to the hidden units of a network and can be considered as a form of stochastic regularization. Dropout was shown in \cite{srivastavaDropoutSimpleWay2014} to improve generalization performance on many different tasks and it was thus ideal for use in our case as well.
+
+It works by "dropping out" a percentage of the neurons during training as seen in Fig.\ref{fig:dropout}. 
+This in turn ensures that no neurons can freeload, and that each neuron contribute. Furthermore, overfitting generally results from many neurons linking tighty, which is much harder since it is now random during training which links are active, and thus gets updated at the same time. 
+In effect this lets one train multiple networks at the same time since different neurons will be turned off at each iteration.
+These networks are highly correlated with each other, but it let us think of it as an ensemble method. 
+This makes the feedforward operation during training, and assuming a \ac{FCNN}:
+\begin{align}
+	r_j^l &\sim \text{Bernoulli}(p)\\
+	\tilde{y}^l &=\bar{r}^l \cdot \bar{y}^l \\
+	z_i^{(l+1)} &= \bar{w}_i^{(l+1)}\tilde{y}^l + b_i^{l+1}\\
+	y_i^{(l+1)} &= f(z_i^{(l+1)})
+\end{align}
+%\begin{marginfigure}
+%  \missingfigure{Dropout1d}%}
+%\caption{Dropout visualization}
+%\label{fig.dropout}
+%\end{marginfigure} 
+During testing, all the neurons are activated at the same time and their output is then scaled in order to reflect the increased number of connections compared to during training.\sidenote{Extra in the sense that all connections are used.}
+If the dropout percentage is set to $p$ the output is scaled by $p$.
+Using Batch Normalization with Dropout at the same time creates problems due to both modifying the variance of the output \cite{liUnderstandingDisharmonyDropout2019}. 
+A workaround is to use Dropout for \ac{FCNN}, and use Batch Normalization for the convolutional layers.
+\section{Model}
+\label{sec:mymodel}
+\begin{figure}[h]
+	\begin{whole}
+		\includegraphics[width=\linewidth]{./figures/chapter6/NN2.png}
+		\caption{An overview of the final model.
+			Created with the tool: \url{https://alexlenail.me/NN-SVG/LeNet.html}.}
+		\label{fig:mymodel}
+	\end{whole}
+\end{figure}
+A visualization of the final model can be seen in \figref{fig:mymodel}.
+The model can be divided in two. There is a feature engineering part made of \acp{CNN}, and a classification part of \acp{FCNN}. 
+Both used \ac{ReLU} as the activation function except for the last layor which had none.
+\subsubsection{Feature engineering}
+I used three convolutional blocks, each consisting of two $3\times3$ convolutions with a stride of $1$ and padding of $1$. 
+After each of the first two blocks I applied max-pool. 
+This was to make the effective field of view of the last $8\times8$ featuremap cover the whole window.
+As max-pool decreased the size of the featuremaps I increased the number of channels from $2\to 16 \to 32 \to 64$.
+% Number of layers vs width
+% See  \cite{tanEfficientNetRethinkingModel2019}
+% used both dropout and dropout2d (the one for CNN's). I got the following response:
+%\cite{liUnderstandingDisharmonyDropout2019}
+I used Batch Normalization after Weight Normalization for the convolutional layers.
+\subsubsection{Classification} 
+For the classification part I unrolled the $64 \times 8 \times 8$ features into one vector to which I had two layers of \acp{FCNN}.
+I used Dropout after the first \ac{FCNN} layer.
+\subsubsection{Hyper-parameters}
+The model was created using \textit{AdamRNW} (\secref{sec:adamrnw}) trained on \textbf{Mixed} (\secref{sec:data_press}).
+I selected the model based on the best mean of 5-fold validation accuracies.
+Furthermore a grid search was made over the learning rate, $\eta \in [0.001,0.002,0.008,0.016]$, and batch size $\in [64,128,256]$.
+For the final model I did not use either label smoothing or artificial foreign objects.
+Neither improved the validation accuracy.
+The case for artificial foreign objects is explored further in \secref{sec:ddependence}.

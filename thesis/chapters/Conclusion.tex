@@ -1,0 +1,113 @@
+\chapter{Discussion and Conclusion}
+\label{chap:conclusion}
+This chapter is split into three sections: Discussion, Conclusion and Future Work.
+\section{Discussion}
+We have not achieved the performance we had hoped for when starting the project. This can be due to limits of the data \secref{sec:disdata} or of the model \secref{sec:dismodel}.
+\subsection{Data}
+\label{sec:disdata}
+% Real world vs us
+The central assumption of this work is that the available data represents the real world usage of the model.
+%The difference between my datasets and real world use cases.
+If this is not the case, the reported result will be severely biased.
+Some effects of this was explored in \secref{sec:limits}.
+%This is hard to evaluate for me, but I believe that in the ideal world, the real world usage would result in data being generated which would allow one to train the models runningly.
+% Uniform backgrounds
+For the test on \textbf{Uniform} the drop in performance is not necessarily as bad as it seemed.
+These were the only background which was not meat. 
+In that sense they were one large foreign object, and alternatively the algorithm should in fact predict all the windows of the whole image to be foreign objects.
+The real problem was discussed in section \secref{sec:ddependence}. The performance, whether accuracy or \ac{AUC}, drops when the models are tested on unseen data.
+This shows that one has to be careful when collecting data to train on.
+% Real world setup
+%Online learning carries its own set of distinct challenges, especially if the model itself has some influence on which data that are selected for training.
+An alternative to lab data would be a setup with online learning directly from the real world usage of the Meat Master II.
+This has its own set of challenges, but presumably the problem of domain shift is not one of them.
+For an overview of the general problems of domain shift I refer to \cite{damourUnderspecificationPresentsChallenges2020}. 
+%My initial supervised suggested that I made a controlled experiment myself and gathered all the data myself that way. 
+%In the end it was easier working with the data FOSS made available from the start, nevertheless the other approach would perhaps, dependt on the experimental design, had yielded greater insights into the algorithm.
+% Dataset dependence
+
+% Labels
+Relabelling the foreign objects could increase the performance with three potential improvements.
+1) The data should have been labelled using the polynomial method \secref{sec:labelling}. 
+Our model managed to converge, but it was clear that the bounding boxes bordering foreign objects was a problem.
+%For the labelling of the data the obvious thing to do would be to redo the labels to the polynomial form.
+%Two things kept me back from doing it: The relative lateness of my discovering the better way to do it. 
+%And secondly the fact that I would have to make changes to the algorithm that creates artificial foreign objects. 
+%This algorithm depended on the gathering of bounding boxes, which to some extend neatly seperated foreign objects from each other, and using the binary mask this would have been a tad more difficult.
+2) Another problem with the labelling was that I labelled all foreign objects equally. 
+They were made out of different materials, steel and aluminium, since they were meant to represent different things, such as metal or bone.
+This extra information was lost.
+3) Furthermore, three items were consistently left out of the labelling. 
+Including these would have increased the potential of the algorithm.
+
+% Artificial foreign object
+The implementation of the artificial foreign objects could have been improved in at least three ways.
+1) The idea with adding artificial foreign objects as a transformation was that it is possible to update this transformation on the fly. 
+In that sense one could monitor for which parameters, size or shapes, the algorithm performed worst and then introduce more of these artificial foreign objects.
+I never got to implement this is in full, but this is one of the advantages of using the transformation approach.
+2) To approximate the attenuation coefficients of metal we chose the four maximum values from each randomly drawn bounding box. 
+This is rather arbitrary.
+Perhaps, it would have been better to model a distribution of attenuation coefficients to draw from.
+%The hyperparameters of the pseudo random shapes were left rather untouched.
+3) We originally had a cut-off on the algorithm, to make sure that when the background was subtracted the lowest value would be around zero, otherwise the drawn bounding box would be discarded. This was removed since we normalized the images before creating examples without background. 
+%Thus it was markedly harder to set one fixed value for "no-background". While it should be possible to renormalize 0 the same way to get the same cut-off, another easy fix would be to normalize after I found the bounding boxes, and in the pipeline have the normalization transformation last.
+\subsection{Model}
+\label{sec:dismodel}
+% Threshold & ML in general & baseline
+In machine learning it is common to test new results against baselines.
+The obvious baseline to use for this study would be FOSS' current implementation of their foreign object detection algorithm.
+Their algorithm is based on some clever thresholding.
+While, the algorithm would be nice to test against in theory, this would introduce new complications regarding secrecy.
+%FOSS use a threshold based algorithm to detect foreign objects. 
+% Chapter 7
+% Results
+The lack of baseline makes it harder to interpret the accuracy of $0.9874$.
+Based on my impression collaborating with FOSS I do still think it is safe to say that this accuracy is too low for real world usage.
+For FOSS' customers it is expensive to stop the production if the Meat Master II flags a crate of meat as containing a foreign object. 
+Thus the false positive rate needs to be as low as possible from a cost standpoint.
+Off course the final consumer of the meat might be more concerned with the number of false negatives, and thus we are back at the classical trade-off problem.
+% is I think it is safe to say, not good enough for real world use.
+% What does this mean in the real world, stopping the conveyor belt and so on.
+
+% Chapter 4
+The sliding window algorithm plays a large role in the shaping of the algorithm.
+But other methods could have been used to generate images for a \ac{CNN}. 
+An alternative would be to use a random crop of the full images as input.
+This is then combined with rescaling to fix the size of the input to a common value.
+The number of available images was small, and the pixels have very consistent physical interpretation, i.e. the absorption of the beam.
+This made the sliding windows approach a good choice since there is no rescaling, and it lets us keep the images of a size corresponding to the foreign objects.
+
+% Chapter 5
+As a tangential project, the 
+family of \acp{Adam} was explored.
+My intial critia for choosing those to work with was that they should be orthogonal to each other, and not introduce too many new hyperparameters to tune.
+Unfortunately, it was not possible to incorporate AdaBelief into AdamRNW due the time of publication of AdaBelief \cite{zhuangAdaBeliefOptimizerAdapting2020}.
+I chose a small subset of \acp{Adam} to work with, and this choice was guided by what I perceived to be the most promising.
+This belief was informed by reading \cite{zhuangAdaBeliefOptimizerAdapting2020} and \cite{luoAdaptiveGradientMethods2018}, but there are a few alternatives of special interest.
+The first is Yogi \cite{zaheerAdaptiveMethodsNonconvex2018} which is similar to AdaBelief, and the second is Ranger \cite{wrightLessw2020RangerDeepLearningOptimizer2020} which is more like my mix of ideas in AdamRNW.  
+
+% Hyper paramet more thoroug
+\section{Conclusion}
+We have trained a model to predict foreign objects with an estimated accuracy of $98.74 \%$ on $32 \times 32$ windows.
+This, I believe, is not good enough for real world use, but some interesting observations have been made along the way.
+There is a very real detrimental effect of testing on data outside of our training distribution. 
+Thus, in order to train a working model, both the labelling and the training sample has to represent the real world usage closely.
+It is possible to create simulated data of artificial foreign objects that increases performance as measured by the \ac{AUC}.
+%We took a look at \ac{Adam} and combined various extensions succesfully to create our own variant hopefully using all the benefits.
+
+\section{Future Work}
+The preprocessing of the images from raw outputs to final absorption measurement was done entirely by FOSS.
+This step is crucial for the signal to noise ratio, and to remove systematic variations caused by imperfect detectors.
+I believe that implementing these models in a full setup should not be done independently of the preprocessing.
+Another master's thesis carried out at the eScience group \cite{topicAdaptiveXrayInspection} made a detailed pipeline for optimizing x-ray images for a similar test, spotting foreign objects in potatoes. 
+The approach relied on a larger amount of preprocessing algorithms also in the context of applying a \ac{CNN} at the end.
+Testing these results with FOSS' images seems like an obvious next step.
+
+%Train a network to distinguish between artificial foreign objects and background, and then test it on real world data.
+%The first major improvement to be had would be to relabel the whole dataset in order to get a better implementation of the sliding window algorithm. 
+%why
+
+One could also use more advanced models with the pixelwide labelling such as YOLOv4 \cite{bochkovskiyYOLOv4OptimalSpeed2020} or Faster R-CNN \cite{renFasterRCNNRealTime2017} or another one from \cite{PapersCodeCOCO}.
+%why?
+These apply more advanced architectures with many more parameters, it would be of exciting to apply these here.
+It would go well with the polynomial labelling since they require pixel accuracy in the labels.

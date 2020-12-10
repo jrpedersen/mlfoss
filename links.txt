@@ -1,0 +1,81 @@
+https://github.com/pytorch/examples/blob/master/imagenet/main.py
+https://github.com/ritchieng/the-incredible-pytorch?fbclid=IwAR31KTyTmjY3Kwp2Po6kDIyT9wSJfVehMm64ysWNEuJIsVjzRXYpFRIKO7E
+
+Project guides:
+https://towardsml.com/2018/08/06/how-great-products-are-made-rules-of-machine-learning-by-google-a-summary/
+https://towardsdatascience.com/complete-guide-to-machine-learning-project-structuring-for-managers-2412bd57a5d
+https://drivendata.github.io/cookiecutter-data-science/#directory-structure
+https://cs230-stanford.github.io/pytorch-getting-started.html
+
+Latex:
+https://tex.stackexchange.com/questions/1319/showcase-of-beautiful-typography-done-in-tex-friends
+http://www.motionmountain.net/onlatex.html
+http://shantoroy.com/latex/add-subfig-in-latex/
+
+Pytorch guides:
+https://cs230.stanford.edu/blog/pytorch/
+https://medium.com/@layog/a-comprehensive-overview-of-pytorch-7f70b061963f
+https://blog.paperspace.com/pytorch-101-advanced/
+https://pytorch.org/tutorials/beginner/deep_learning_60min_blitz.html
+https://adventuresinmachinelearning.com/convolutional-neural-networks-tutorial-in-pytorch/
+
+Style transfer:
+https://pytorch.org/tutorials/advanced/neural_style_tutorial.html
+From xml to pictures.
+https://medium.com/coinmonks/part-1-2-step-by-step-guide-to-data-preparation-for-transfer-learning-using-tensorflows-object-ac45a6035b7a
+
+Visualizing network:
+https://github.com/utkuozbulak/pytorch-cnn-visualizations
+https://software.intel.com/en-us/articles/visualising-cnn-models-using-pytorch
+https://towardsdatascience.com/illustrated-10-cnn-architectures-95d78ace614d
+Hooks:
+https://blog.paperspace.com/pytorch-hooks-gradient-clipping-debugging/
+
+Network architectures:
+https://towardsdatascience.com/advanced-topics-in-deep-convolutional-neural-networks-71ef1190522d
+https://towardsdatascience.com/normalization-vs-standardization-quantitative-analysis-a91e8a79cebf
+https://www.jeremyjordan.me/convnet-architectures/
+https://towardsdatascience.com/intuitively-understanding-convolutions-for-deep-learning-1f6f42faee1
+https://towardsdatascience.com/deepmind-quietly-open-sourced-three-new-impressive-reinforcement-learning-frameworks-f99443910b16
+https://towardsdatascience.com/batch-normalization-and-dropout-in-neural-networks-explained-with-pytorch-47d7a8459bcd
+
+Dataset structure:
+https://discuss.pytorch.org/t/how-to-speed-up-the-data-loader/13740/2
+http://docs.h5py.org/en/latest/
+https://towardsdatascience.com/building-efficient-custom-datasets-in-pytorch-2563b946fd9f
+
+Gradient descent:
+https://sebastianraschka.com/blog/2016/model-evaluation-selection-part3.html
+https://towardsdatascience.com/its-only-natural-an-excessively-deep-dive-into-natural-gradient-optimization-75d464b89dbb
+https://towardsdatascience.com/stochastic-gradient-descent-with-momentum-a84097641a5d
+https://towardsdatascience.com/adam-latest-trends-in-deep-learning-optimization-6be9a291375c
+
+Pytorch speedup:
+https://towardsdatascience.com/speed-up-your-algorithms-part-1-pytorch-56d8a4ae7051
+https://towardsdatascience.com/9-tips-for-training-lightning-fast-neural-networks-in-pytorch-8e63a502f565
+
+Coursera:
+https://www.coursera.org/specializations/deep-learning
+Quanta mag:
+https://www.quantamagazine.org/to-build-truly-intelligent-machines-teach-them-cause-and-effect-20180515/
+https://www.quantamagazine.org/computers-and-humans-see-differently-does-it-matter-20190917/
+
+Deep reinforcement:
+https://spinningup.openai.com/en/latest/user/introduction.html
+https://openai.com/blog/evolution-strategies/
+
+Misc:
+https://medium.com/health-ai/google-deepmind-might-have-just-solved-the-black-box-problem-in-medical-ai-3ed8bc21f636
+https://github.com/floodsung/Deep-Learning-Papers-Reading-Roadmap
+https://fluxml.ai/2019/02/07/what-is-differentiable-programming.html
+https://www.microsoft.com/en-us/research/blog/deep-infomax-learning-good-representations-through-mutual-information-maximization/
+https://www.quantamagazine.org/an-idea-from-physics-helps-ai-see-in-higher-dimensions-20200109/
+https://www.reddit.com/r/MachineLearning/comments/eq3da0/d_what_are_the_current_significant_trends_in_ml/
+
+Next network
+https://towardsdatascience.com/review-retinanet-focal-loss-object-detection-38fba6afabe4
+https://medium.com/@jonathan_hui/real-time-object-detection-with-yolo-yolov2-28b1b93e2088
+https://towardsdatascience.com/review-ssd-single-shot-detector-object-detection-851a94607d11
+https://medium.com/ai-in-plain-english/review-condensenet-improve-densenet-with-learned-group-convolution-image-classification-85de829781db
+https://medium.com/@sh.tsang/review-unet-a-nested-u-net-architecture-biomedical-image-segmentation-57be56859b20
+https://towardsdatascience.com/review-densenet-image-classification-b6631a8ef803

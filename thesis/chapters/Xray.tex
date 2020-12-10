@@ -1,0 +1,167 @@
+\chapter{X-ray images}
+\label{chap:x-ray}
+In this chapter the physics governing x-ray attenuation contrast imaging is presented. To do so, I will try to shine a light on the interactions between electromagnetic radiation and matter.
+These interactions are the foundation on which photography is founded, and are key in the making of x-ray images. X-rays are electromagnetic radiation with a typical wavelength in the range of $10pm$ to $10nm$. Central to the usefulness of x-rays is the ability to penetrate solid materials. 
+
+The layout of the chapter will be as follows:
+In the first section, \secref{sec:photons}, the physics and equations governing the interactions that are relevant for x-rays is showed.
+These are the photoelectric absorption, Compton scattering, pair production and coherent scattering. The exposition of the material follows \citebook{knollRadiationDetectionMeasurement2000}.
+The second section, \secref{sec:attenuation}, gathers these interactions in the context of attenuation contrast imaging.
+The third section, \secref{sec:cdx-rays}, concerns itself with the creation\sidenote{In other words, the \textit{source}} and detection of x-ray photons.
+Finally, a short section is devoted to introduce dual energy x-rays, \secref{sec:dual_energy}.
+\section{Photons}
+\label{sec:photons}
+Photons or electromagnetic radiation occupy a central place in physics, and is used to investigate anything from the biggest stars, to the smallest of atoms.
+Now the photon is famously both a particle and a wave at the same time, and when viewing the interactions of importance it is perhaps better to think of the photons as single particles undergoing interactions, which will let it either pass through a given material, or be stopped. 
+For a single photon, the energy, $E_p$, and momentum, $p$, is given by:
+\begin{align}
+E_p &= h \nu, \\
+p &= \frac{E_p}{c},
+\end{align}
+with $h$ being planks constant, and $\nu$ the frequency. Furthermore the conversion between wavelength and frequency is given by:
+\begin{align}
+c=\lambda \nu,
+\end{align}
+With $c$ the speed of light, $\lambda$ the wavelength. The interactions of interest are the ones which transfer energy from the particle to the matter. \sidenote{That these interactions are fundamental to physics, can also be seen by the Nobel prizes given for discovering an interaction. Given to Einstein, Compton and Blackett.}
+For the following I have used \cite[see][chap. 2]{knollRadiationDetectionMeasurement2000}
+\subsection{Photoelectric absorption}
+\sidefigure[Absorption]{The photoelectric absorption. An incident wave (blue) is absorbed by an electron (black) which is in turn ejected from it bound state.}[fig:absorption]
+{\input{./figures/chapter2/absorption.tex}}
+Photoelectric absorption happens when a photon interacts with an atom and the photon excites an electron from the atom to the continuum. A simplistic representation of this is shown in \figref{fig:absorption}. In this process the photon is absorbed. For photoelectric absorption to happen, the energy of the photon has to be greater than the energy with which the electron is bound to the nucleus, $E_b$. The resulting energy of the excited electron, $E_{e^-}$ is:
+\begin{align}
+E_{e^-} = E_p - E_b,
+\end{align}
+The resulting atom is now ionized, and depending on which shell the electron exited belonged to, further reactions may take place, resulting in the emission of new photons.
+
+The full description of this effect, how it alters the probability of absorption, is rather complex. As an approximation in the x-ray regime, it is described by the equation:
+\begin{align}
+\tau \propto \frac{Z^N}{E^{3.5}},
+\end{align}
+with $\tau$ being the rate of absorption given $Z$, the atom number, and $N \in [4,5]$ an experimentally determined constant. Thus we see that heavier nucleus absorbs more photons, which is why these are used to shield x-ray devices with especially lead being common.
+
+\subsection{Compton Scattering}
+\sidefigure[Compton]{Compton scattering. An incident wave (blue) is inelastically scattered by an electron (black) which in turn recoils.}[fig:compton]
+{\input{./figures/chapter2/compton.tex}}
+Compton scattering describes the inelastic deflection of an incoming photon when interacting with an electron of the target material. A simplistic representation of this is shown in \figref{fig:compton}. In this process the photon transfers energy to the electron it interacts with. Using conservation of energy and momentum, for a given scattering angle $\theta$, we have:
+\begin{align}
+h \nu' = \frac{h \nu}{1+\frac{h \nu}{m_0c^2}(1-\cos\theta)},
+\end{align}
+where $\nu'$ is the frequency of the outgoing photon, and $m_0c^2$ is the rest-mass energy of the electron.
+\subsection{Pair production}
+Pair production is an interaction between the photon and the nucleus at high energies. The result is that the photon energy is converted to an electron-positron pair. A simplistic representation of this is shown in \figref{fig:pairprod}. Since the rest-mass energy of a pair of electrons is $1.02 MeV$, the photon energies must be larger than this. This effect only becomes predominant at even larger energies well outside the scope of the x-rays used for this thesis.
+\sidefigure[Pair production]{Pair production. An incident wave (blue) interacts with the nucleus (red), which transforms its' total energy into an electron-positron pair.}[fig:pairprod]
+{\input{./figures/chapter2/pairprod.tex}}
+
+\subsection{Coherent Scattering}
+Included for completeness is coherent scattering. It is a fully elastic interaction which leaves the energy of the photon unchanged. 
+For the low energies this interaction is roughly a couple of percentages of the total attenuation coefficient.
+The surroundings can also by coherent scattering introduce noise in the images.
+%It does have a role to play, in that it scatters the beam to the outside.
+%Thus the interaction can be neglected when looking at the interactions important for attenuation contrast imaging.
+% It only constitutes a couple of pertanges
+\section{Attenuation contrast}
+\label{sec:attenuation}
+\sidefigure[Attenuation]{Attenuation for all the different processes for Carbon in the energy range $5-150$ keV. T for total, P for photoelectric, C for Compton Scattering, and R for Rayleigh Scattering (Coherent Scattering). From \cite{XRayOpticsCalculator}}[fig:attenuation]{\includegraphics[scale=1]{figures/chapter2/atten.pdf}}
+To create attenuation contrast images we use the property that a beam of x-rays will be attenuated when transmitting through a given sample. 
+Areas of high density, $\rho$, and containing elements with a high atomic number, $Z$, will have a higher probability to absorb photons from our beam, contrasting with regions lacking these attributes. 
+
+To model all of the above interactions as one probability for the photon to be absorbed, we can introduce the linear attenuation coefficient, $\mu$, as:
+\begin{align}
+\label{eq:lin_coeff}
+\mu = \mu_{PE} + \mu_{Comp} + \mu_{PP} + \mu_{Coherent},
+\end{align}
+with $\mu_{PE}$ the contribution from the photoelectric effect, $\mu_{Comp}$ the contribution from Compton scattering, $\mu_{Coherent}$ the contribution from coherent scattering and $\mu_{PP}$ the contribution from pair production.
+A plot of the total attenuation can be seen in \figref{fig:attenuation} where Carbon is chosen as the target.
+Thus if the intensity of a photon beam is $I_0$ the intensity after passing through a given material is then given by the Lambert-Beer's law:
+\sidedef{Lambert-Beer's law}{}{
+\begin{align}
+\label{eq:lamb}
+	I(x) = I_0 \:e^{-\mu x}.
+\end{align}
+}
+That the density is important can be inferred from the fact that our description of interactions is per atom. Thus higher densities lead to a higher number of atoms, which leads to more interactions that attenuate our beam. 
+To get a density independent description of $\mu$ we can use the mass attenuation coefficient $\mu_\rho$.
+\begin{align}
+\mu_{\rho} = \frac{\mu}{\rho}
+\end{align}
+For compound materials, the total mass attenuation coefficient can be calculated from:
+\begin{align}
+\label{eq:compound}
+\mu_{\rho}(total) = \sum_i w_i \cdot \mu_{\rho}(i)
+\end{align}
+where the $\sum_i$  is over the $i$ elements and $w_i$ is the fraction of the weight of element $i$ to the total weight. With these equations in hand, it's possible to infer the material properties of an unknown sample, giving rise to a host of applications.
+%Absorber mass thickness.
+%Now we can assume various things and voila we can see through meat. The amount absorped is depend on the atomic structure of the target, and thus one can use absorption spectra to identify what the target is constituted of. This is off course also why it is ideal for foreign object inspection. The equations have 2 unknowns if you just look at them, and thus we have a problem with solving the system.
+%The characteristic absorption is:
+\section{Creation and Detection of X-rays}
+\label{sec:cdx-rays}
+%X-ray photons are on wikipedia defined as the photons with a wavelength between $[10 pm, 10 nm]$ \cite{Xray2020}. 
+In practice the quality of x-ray imaging is heavily dependent on both the quality of the created x-rays, and the quality of the dector. 
+The source of x-rays used\sidenote{by FOSS.} for this thesis is an x-ray tube.
+The main process being used in conventional x-ray tubes to generate x-rays is called Bremsstrahlung which we will look at first. 
+Then, scintillator based detectors will be quickly reviewed, since these are the ones FOSS used to generate the images for this thesis. 
+\subsection{X-ray tubes \& Bremsstrahlung}
+\sidefigure[Bremsstrahlung]{Bremsstrahlung. From \cite{LectureAcceleratedCharges}}[fig:bremse]{\includegraphics[width=\linewidth]{figures/chapter2/bs.jpg}}
+Bremsstrahlung is the radiation due to electrons de-accelerating in matter and converting their energy to electro-magnetic radiation.
+A stylistic example of this can be seen in \figref{fig:bremse}.
+%\todo{Does the slowing down happen in the tungsten absorber?}
+This results in a broad spectrum of energies, bounded by the maximum energy of the electron above, and dominated by the low energies.
+In order to get a good conversion of electron energy to radiation, the material used to slow the electrons has to have a high atomic number, and the electron energy has to be high as well.
+In x-ray tubes, a beam of electrons is shot at a target which is responsible for the de-acceleration. The electrons have a chance to excite the atoms of the target which when the atom decays result in some characteristic x-rays of a given energy, on top of the Bremsstrahlung spectrum.
+%These characteristic x-rays is from the excitation of electrons in the absorber to an outer shell, and the corresponding decay to the ground state. This decay is usually very fast, and the resulting characteristic photon that is emitted has an energy determined by the atomic structure of the absorber.
+In practice, one is mostly interested in the high end of the spectrum which leads one to apply a filter to remove the low energy x-rays.
+For our purposes photons in the energy range $10-200$ keV is of interest.
+%and to narrow this one usually uses an absorber in the x-ray tube. 
+%The absorber will mainly absorb the low energy photons, and instead emit some photon with a characteristic energy dependent on the absorber in question.
+\subsection{Detector}
+\sidefigure[Scintilator Detector]{Scintilator detector. From \cite{sheferStateArtCT2013}}[fig:dscin]{\includegraphics[width=\linewidth]{figures/chapter2/scintillator.png}}
+FOSS uses a scintillator based detector. The scintillator converts high energy photons to visible light.
+Then it is possible to measure the amount of visible light with a conventional camera. This requires that the scintillator is transparent to the wavelength of its own emitted light.
+
+The total performance of the scintillator is given by its ability to convert x-rays into its own emitted light. Furthermore, this conversion should be linear, such that the light emitted is proportional to energy input. 
+% in order to measure the the throughput.
+%FOSS uses a
+\section{Dual energy}
+\label{sec:dual_energy}
+%\sidefigure[Dual Energy]{Dual energy.}[fig:denergy]{\includegraphics[width=.9\marginparwidth]{example-image-golden}}
+This sections draws heavily on \cite{kochOnlineInspectionXray2017}.
+The above admittedly very simple picture of attenuation excluded one very important fact. The interactions between photon and material are very dependent on the energy of the photon, $E_p$. Thus the linear attenuation coefficients are too. Introducing this dependence formally by writing $\mu(E_p)$ in Eq. \eqref{eq:lin_coeff} and Eq. \eqref{eq:lamb} results in:
+\begin{align}
+	I(E_p, x) = I(E_p,0) \:e^{-\mu(E_p) x}.
+\end{align}
+Here we have also already anticipated the possibility that the incident beam is not monochromatic, meaning $I_0$ becomes $I(E_p,0)$. From \secref{sec:cdx-rays} we know that this is very much the fact. Leaving that aside for now, if we assume that we have two perfectly monochromatic beams on the same target, with intensities $I_1,I_2$, we can use the relation:
+\begin{align}
+	\frac{\log \frac{I(E_{p1}, x)}{I(E_{p1},0)}}
+	{\log \frac{I(E_{p2}, x)}{I(E_{p2},0)}} =\frac{\mu(E_{p1})}{\mu(E_{p2})},
+\end{align}
+to get a length independent estimate of the composition of the target. If we assume that our target, with length $L$, consists of two materials, we get:
+\begin{align}
+	\mu L \approx \mu_{1} L_1 +  \mu_{2} L_2,
+\end{align}
+which is a solvable system of two equations. For a non-monochromatic beam one has to integrate over the energy of the beam to get the full transmission. This gives us, under the assumption of dual-energy beams, the equations:
+\begin{align}
+	\label{eq:dual_energy}
+	\int_{E_1} I_1(E_1,0)  \:e^{-\mu_{1}(E_1) L_1 -  \mu_{2}(E_1) L_2} dE_1 = I_1, \\
+	\int_{E_2} I_2(E_2,0)  \:e^{-\mu_{1}(E_2) L_1 -  \mu_{2}(E_2) L_2} dE_2 = I_2.
+\end{align}
+These are the two intensities resulting in the images we have been working with.\sidenote{Assuming perfect detector efficiency.}  Our approach has been to use machine learning with these as inputs, instead of using any physical way to solve the system. We will show examples of the actual dual channel images in the next chapter.
+%There is different ways to make dual energy, but what FOSS does is single source but dual camara, dual energy imaging. Now when you have dual energy images the equations can simplify somewhat if one uses some tricks.
+%\bibliographystyle{unsrt}
+%\bibliography{../references}
+\subsection{Dual energy scintillator}
+FOSS uses a sandwich detector to obtain their dual energy images. 
+In this setup, there is one source, with two detectors stacked on top of each other.
+The first scintillator absorbs the low energy x-rays and transmits most of the high energy x-rays. 
+The second scintillator is designed to absorb the remaining high energy photons.
+This result in the two energies being correlated with each other, since the high energy signal also has to pass through the low energy detector.
+This effect can be reduced by placing a metal filter between the two scintillators to remove all the low energy photons before the second scintillator.
+An example can be seen in \figref{fig:sandwich}.
+
+\newpage
+\begin{figure}[h]
+	\begin{sidecaption}[Sandwich detector]{One sandwich detector illustrated, not the one FOSS uses. From \cite{sheferStateArtCT2013}.}[fig:sandwich]
+		%\antimpjustification
+		\centering
+		\includegraphics[width=\linewidth]{./figures/chapter2/sandwich.png}
+	\end{sidecaption}
+\end{figure}

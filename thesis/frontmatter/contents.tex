@@ -1,0 +1,62 @@
+%*******************************************************
+% Table of Contents
+%*******************************************************
+\refstepcounter{dummy}
+\pdfbookmark[1]{\contentsname}{tableofcontents}
+\tableofcontents*
+
+\clearpage
+
+%*******************************************************
+% List of Figures, Tables, Listings, Acronyms, Notation
+%*******************************************************
+
+\begingroup 
+
+%*******************************************************
+% List of Figures
+%*******************************************************  
+%\refstepcounter{dummy}
+%\pdfbookmark[1]{\listfigurename}{lof}
+%\newlistof{listoffigures}{lof}{\listfigurename}
+%\listoffigures*
+
+%\clearpage
+
+%*******************************************************
+% List of Tables
+%*******************************************************
+%\refstepcounter{dummy}
+%\pdfbookmark[1]{\listtablename}{lot}
+%\newlistof{listoftables}{lot}{\listtablename}
+%\listoftables*
+
+%\vspace*{2.5cm}
+%*******************************************************
+% List of Listings
+%*******************************************************      
+%\refstepcounter{dummy}
+%\pdfbookmark[1]{\listlistingsname}{lol}
+%\newlistof{listoflistings}{lol}{\listlistingsname}
+%\listoflistings*
+
+%\clearpage
+
+%*******************************************************
+% Acronyms
+%*******************************************************
+\refstepcounter{dummy}
+\pdfbookmark[1]{Acronyms}{acronyms}
+\chapter*{Acronyms}
+\begin{acronym}[NGCUCX]
+	\acro{FCNN}{Fully Connected Neural Network}
+	\acro{CNN}{Convolutional Neural Network}
+	\acro{ReLU}{Rectified Linear Unit}
+	\acro{SGD}{Stochastic Gradient Descent}
+	\acro{Adam}{Adaptive Moment Estimation}
+	\acro{ROC-curve}{Receiver Operating Characteristic Curve}
+	\acro{AUC}{Area Under the ROC-Curve}
+	\acro{GAN}{Generative Adversarial Nets}
+	\acro{VAE}{Variational Autoencoder}
+\end{acronym}   
+\endgroup

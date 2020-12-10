@@ -1,0 +1,17 @@
+% Absorption
+\resizebox{11.5pc}{!}{
+\begin{tikzpicture}
+% Incident wave
+\draw [-,pblue,smooth,domain=0:1.5] plot (\x, {0.25*sin(8*pi*\x r)});
+\draw [->, pblue] (1.5,0) to [out=84,in=180] (1.58,0.1) to [out=0,in=180] (1.82,0);
+%Nucleus
+\draw [fill,pred] (2.5,0) circle [radius=0.15];
+%Electron bane
+\draw [gray] (2.5,0) circle [radius=0.65];
+%Electron 
+\draw [] (2.5,0.65) circle [radius=0.05];
+\draw [fill] (4.5,0.65) circle [radius=0.05];
+\draw [porange, ->] (2.6,0.65) -- (4.4,0.65);
+\node [below left] at (4.5,0.65) {$\mathrm{e^-}$};
+\end{tikzpicture}
+}

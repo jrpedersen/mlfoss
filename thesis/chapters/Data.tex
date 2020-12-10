@@ -1,0 +1,76 @@
+\chapter{Data Presentation}
+\label{chap:datapres}
+%I will talk about the data in three steps consisting of preprocessing, labelling and augmentation. Preprocessing is off course generally needed to translate any raw input into something useful, but the part of preprocessing from the x-ray machine to final images is not something I will tell of. 
+%Instead when I say preprocessing I mean the steps one can take to enhance natural images. Along with the preprocessing comes 
+In this chapter the data are presented.  
+The chapter is split in two sections. 
+The first section, \secref{sec:data_press}, presents the data that was made available from FOSS. The data are dual energy x-ray images obtained using the Meat Master II. 
+I was involved in a quarter of the experiments.
+The second section, \secref{sec:labelling}, goes in depth with the critical task of labelling the data, which I did for all the images. 
+The labels are used to both train and evaluate the performance.
+Thus, to a large extend, the quality of the labelling bounds the performance of the algorithm. 
+
+%All in all, this chapter will treat the images "as is", so to speak. 
+This chapter will present the raw data and methods used for annotation.
+Then, in the next chapter, we will look at the data in the context of machine learning.
+\section{FOSS images}
+\label{sec:data_press}
+The full dataset is made up of four parts. In order to keep track of each, we will refer to them as: Circles, Squares, Pens, and Uniform. Examples from each are presented in \figref{fig:full_data}.
+Each image has two channels, one for the low- and the high energy part. 
+When visualizing images, we visualize the low energy channel, unless otherwise written.
+The images are captured on a conveyor belt and have the height of $384$ pixels. The width is dependent on the objects being scanned, roughly ranging from $380$ to $550$ pixels. 
+The pixels have a physical size of $1.6$ mm. 
+As the first preprocessing step, the width across images belonging to the same dataset was made constant. They would differ by $1-10$ pixels, so in effect it meant cutting of small strips at the edges.
+The concrete composition of the datasets are as follows:
+
+\textbf{Circles}. This part of the data contains $20$ images, where half of the images have three phantoms each. Every phantom consists of $13$ spheres of metal, giving each image a total of $39$ foreign objects. 
+An example of an image belonging to this dataset can be seen in \figref{fig:full_data}.\textbf{A}. This image contains phantoms, but they are not necessarily easy to see. This row, shows both the low- and high energy channel, along with their difference. The difference is plotted to show that there is some extra information in having the two channels. It also makes it slightly easier to spot the foreign objects.
+
+\textbf{Squares}. This part of the data contains $116$ images. A quarter of the images contain phantoms. These images have two distinct backgrounds. In \figref{fig:full_data}.\textbf{B} the first and third images shows the two kinds of backgrounds, and the second and fourth are examples that includes foreign objects. For this dataset, the foreign objects consists of both cubes of metal and the phantoms from before.
+
+\textbf{Pens}. This part consists of $40$ images. These images have four distinct background, examples of which can be seen in \figref{fig:full_data}.\textbf{C}.
+The foreign objects, of this dataset, are real world objects and there are two configurations. This means they are more complex than the previous types of objects. Examples are shown in row two and three of \figref{fig:full_data}.\textbf{C}. 
+%This part of the data also contains two sets of bigger objects as foreign objects which can be seen in row two and three of \figref{fig:full_data}.\textbf{C}.
+
+\textbf{Uniform}. In total there is $47$ images with the same, mostly uniform, backgrounds, shown in \figref{fig:full_data}.\textbf{D}. This is the dataset I helped to create. The uniform background is made up of a varying number of POM plates, from $2$ to $17$. Each image contain two phantoms identical to the ones used in \textbf{Circles}.
+
+\begin{figure}[h]
+	\vspace*{-1cm}
+	\begin{whole}
+		\includegraphics[width=\textwidth]{example-image-a}
+		%\includegraphics[scale=1.0]{./figures/chapter3/data_presentation_noticks.pdf}
+		\caption{
+		\textbf{A} Visualization of one image from the dataset called \textbf{Cirles}. The image has two channels, corresponding to the low energy (LE) and high energy (HE) channels. Their difference is shown in the third picture. The example image contains phantoms.
+		\textbf{B} The low energy channel of four images from \textbf{Squares}. These images have either round or square meats as background, and shown is two examples of each. The first two are without phantom, the last two with. 
+		\textbf{C} The low energy channel of 12 images from \textbf{Pens}. The four distinct backgrounds are shown along the columns, with each set foreign objects on each row.
+		\textbf{D} The final row is four images of the low energy channel from \textbf{Uniform}. The range of backgrounds is from $17$ to $2$ POM plates. All of these images contain foreign objects.
+		}
+		\label{fig:full_data}
+	\end{whole}
+\end{figure}
+
+%The so what
+%\clearpage
+We will be using the first three sets of images, \textbf{Circles}, \textbf{Squares} and \textbf{Pens}, as the images that are the main challenge of the thesis. The background in these images are real meat, and thus they resemble the real world the best. The fourth set, \textbf{Uniform}, will be used to test my final model in a more contrived setting, helping to put some boundaries on the performance.
+
+%\section{Phantoms}
+%Perhaps an image of the phantoms I have been using.
+\clearpage
+\section{Labelling}
+\label{sec:labelling}
+
+Two different pieces of software was used to label the data. The first, labelImg (\cite{darrenlTzutalinLabelImg2020}), allowed one to make rectangular bounding boxes. The second, Labelme (\cite{wadaWkentaroLabelme2020}), also has support for polygonal and circular annotations.
+In both cases, the labelling resulted in a binary mask.
+\figref{fig:labelling} shows different annotations of the same image with their difference, using an zoomed in example from \textbf{Pens}. 
+The plot of the difference shows that the rectangular boxes will wrongly label a significant amount of pixels in the vicinity of non-square objects. Depending on the eventual algorithm used, this could have an effect on the final result.
+Furthermore, it is possible to see three objects that are not labelled as foreign objects. These are the hair tie between the pen and the trapeze. Above that a circular shape is also shown. Finally there is a small stone to the center right. These were hard to consistently see and as such they are not included in general.
+It seems the Labelme would be ideal for this dataset. Unfortunately, I began using it late in the process and only have a version of \textbf{Pens} labelled this way. 
+
+\begin{figure}[h]
+	\begin{whole}
+		\includegraphics[width=\textwidth]{example-image-a}
+		%\includegraphics[scale=1.0]{./figures/chapter3/labelling.pdf}
+		\caption{The two ways to label the data and their difference. The first image was labelled using LabelImg which only allows rectangles. The second was annotated with Labelme which allows for more complex shapes. Finally, the difference of the masks is plotted, with the yellow representing the extra pixels due to the rectangles. The dark blue corresponds to pixels not marked with the polynomial labelling, but only with the rectangular.}
+		\label{fig:labelling}
+	\end{whole}
+\end{figure}

@@ -1,0 +1,303 @@
+\chapter{Data Processing}
+\label{chap:dataprocs}
+% Need
+After having labelled the available images the question is: How do you go from a labelled dataset to a reliable model? 
+First of all, the quality of the available data limits the performance of our model.
+The labelling lets us know whether the images contain foreign objects, which is the process we would like to automate.
+Thus, errors in labelling might result in errors in our model.
+Secondly, the images we have are only a sub-sample of the larger distribution of data which our model is supposed to work on.
+Thus any avenue which increase the quality or suitability of our data, compared to our model, is worth pursuing.
+
+% Task
+The approach were as follows: The images were cut into windows using an sliding window algorithm (\secref{sec:slidingwindow}). 
+In order to make the model robust to perturbations, we introduced augmentations in the dataset.
+First, the simple data augmentations of rotation and mirroring (\secref{sec:dataaug}).
+Secondly, we created synthetic data, in the form of artificial foreign objects (\secref{sec:afo}).
+\section{Sliding window}
+\label{sec:slidingwindow}
+%Message: Preprocessing of data for algorithm
+%Pros: Keeps network size reduced. On scale of FO's. Increases amount of training data.
+A sliding window algorithm was used to generate $32 \times 32$ pixel windows from the images with $50\%$ overlap.
+%, as \cite{sermanetOverFeatIntegratedRecognition2014}. 
+The windows was used as input to the model.
+The smaller size of the windows, compared to the full image size, allowed for expanding\sidenote{Expand perhaps in an artificial way.} the initial limited dataset of approximately $200$ images considerably. 
+Since the task of detecting foreign objects was harder for smaller objects, keeping the input of a size comparable to the expected objects seemed sensible. 
+Furthermore, this greatly increased the number of background only windows to learn from (true negatives), as one tiny metal sphere of a size of $5 \times 5$ pixels would not reduce a full picture to positive. 
+%\begin{marginfigure}
+%	\missingfigure{}%}
+%	\caption{Figure sliding windows}
+%	\label{fig.slidingwindows}
+%\end{marginfigure}
+
+\subsection{Training and  test split}
+%Intro to split of dataset
+In order to verify the results of ones model, it is ubiquitous in machine learning to split ones dataset into \textbf{Train} and \textbf{Test} sets. 
+%Train / Test split
+The \textbf{Test} part is a hold out set, which you use for testing your final model in order to evaluate its performance. 
+If these test results are to be believable it is key that the test data are kept strictly separate from the training process. 
+This is due to the fact that the models used in deep learning sometimes have the capacity to fit to the noise in the data itself.
+This is called overfitting, and the problem is that it is impossible to know whether you overfit if you do not keep a hold out set.
+%Train / Validation
+The training set is the data you have to learn with. 
+It is common to split training into training and validation sets. 
+Thus you only train on part of your training set, and keep the validation set to optimize hyper-parameters.
+Optimizing hyper-parameters directly on the training set can also lead to overfitting.
+%K-fold validation
+Finally, we have used a k-fold validation split. 
+K-fold validation is when you split at dataset into k parts, and then use $k-1$ for training, and the last part for validation.
+This allows you to validate $k$ partitions of your dataset.
+This makes k-fold validation most viable for smaller datasets, since validation of $k$ models can be too computationally expensive for large models. 
+%\vspace*{-0.2cm}
+\subsection{Distributional Statistics}
+\sidefigure[Label distribution]{Distribution of labels for the \textbf{Mixed} dataset.}[fig:pie_label]
+{\includegraphics[scale=1.]{./figures/chapter4/ch4_label_dist.pdf}}
+% Intro 
+%\subsubsection{Mixed dataset}
+All the windows from \textbf{Circles}, \textbf{Squares} and \textbf{Pens} were collected into one dataset called \textbf{Mixed}. 
+% Why choose these
+These three sets of images were the initial data made available from FOSS, and they represent various ways to evaluate the model.
+\textbf{Mixed} was then split into a \textbf{Train-}, \textbf{Validation-} and \textbf{Test Set} using the ratios $0.64, 0.16,0.20$, respectively. 
+This was done by first splitting train and test $80\%$ to $20\%$. 
+Then the training set was split one-to-five in validation and train.
+The \textbf{Mixed} dataset was labelled with rectangular bounding boxes.
+The label distribution of the windows can be seen in \figref{fig:pie_label}. 
+We see that $9.0\%$ of the windows contain foreign objects.
+This means that our dataset is unbalanced, which can potentially lead to issues when training.
+Furthermore, this is also much higher than what we would expect to see in the real world.
+This is a problem when reporting test results, since the test result are from a clearly biased distribution.
+\vspace*{-0.5cm} 
+\begin{figure}[h]
+	\begin{sidecaption}[Histogram of low energy pixel values.]{Log-histogram of low energy pixel values.}[fig:hist_int]
+		\antimpjustification
+		\centering
+		\includegraphics[scale=1.]{./figures/chapter4/ch4_hist_inten.pdf}
+	\end{sidecaption}
+\end{figure}
+
+A logarithmic histogram of the distribution of pixel intensities is plotted in \figref{fig:hist_int}. The most prevalent values for a pixel is between $0.0-0.5$. These pixels are all uncovered conveyor belt, and are not of interest for our model. 
+They can relatively easily be cut away, but we also assume that the model would have no problem figuring out that these are not foreign objects. As we will see in \chapref{chap:results} that is indeed the case.
+The other end of the scale is where our foreign objects lie. Not all of these pixels corresponds to foreign objects but most do. 
+Preprocessing methods of interest such as histogram equilization and the like were briefly tried, but never fully implemented and tested. 
+%I was hesitant to put them to use since the two channels we have to work with are correlated, and carries information which has a very physical interpretation.
+
+%In this subsection I am thinking of introducing the statisticals of windows and foreign objects.\\
+\sidefigure[Pixel averages]{Normalized pixel absorption averages. The normalization is over the full range of values the pixel can take as inputs.}[fig:pix_avg]
+{\includegraphics[scale=1.]{./figures/chapter4/ch4_pix_avg_norm.pdf}}
+Looking at the windows themselves, the mean value of each pixel, normalized by the range of values to lie between $0$ and $1$, is plotted in \figref{fig:pix_avg}. Ideally this would have looked like homogenous white noise. This seems to be the case in the vertical direction, where the variation seems to be on the order of less than $1 \%$ of the range of inputs.
+Varying horizontally, this is not the case.
+We see that the variations corresponds to $4\%$ of the total range measured.
+I assume this is a bias due to the sliding window algorithm, and not a bias in the full images themselves. 
+When looking at the two halves of the plot, divided vertically, we see the same pattern repeating just with lower values to the right. This, at least, makes sense since our sliding windows overlap $50\%$.
+\section{Data transformations}
+\label{sec:dataaug}
+This section describes the various steps in the preprocessing pipeline after loading the windows.
+\subsection{Standardization}
+\label{sec:standardization}
+% Standardize and why.
+The windows was standardized as has become standard practice for many deep learning algorithms \cite{lecunEfficientBackProp2012}. This is done channel-wise for all pixels in the window with mean and standard deviate estimated from all the images of the training set.
+%, and not for each pixel alone. 
+%If we assume that our windows are randomly sampled from our images this would result in the same. 
+Standardizing is done in order to improve the convergence of the model, and more generally, to make the different data dimensions equal. To be clear the formula is: 
+\begin{align}
+	X_n = \frac{X-\langle X \rangle}{\sigma_X}
+\end{align}
+I use Pytorch's \textit{transforms.Normalize}, but it does in effect standardize \cite{TorchvisionTransformsPyTorch}.
+
+\subsection{Rotations and mirroring}
+% My case
+The images we work with were captured from above, and since the subject is meat, with possibly some non-meat objects we would like identified, the algorithm should be rotationally invariant. 
+% Intro data augmentation
+Thus, rotations and mirrorings were introduced to augment my data. 
+Since my windows are square, by design, rotations of $90^\circ$ are especially easy.
+Combined with mirroring either the vertically or horizontally the number of windows were effectively increased eight-fold.
+Rotations of other degree than multiples of $90^\circ$ could have been implemented using linear interpolation, but this would potentially result in a loss of information so we chose not to.
+
+\begin{figure}[h]
+	\begin{sidecaption}[Rotations or mirrorings.]{Rotations and mirrorings illustrated on a random window.}[fig:sample_rm]
+		%\antimpjustification
+		\centering
+		\includegraphics[scale=1.]{./figures/chapter4/sample_rm.pdf}
+	\end{sidecaption}
+\end{figure}
+
+\section{Artificial foreign objects}
+\label{sec:afo}
+% Dataset has holes in it.
+If your available data does not cover the full distribution it is sampled from, it will bias any model trained on it.
+%Tby training on many different kinds of shapes.
+%The idea was to remove any possible shape dependence of our potential model by having the training set contain many different kinds of shapes.
+Collecting more data to fix this is time consuming and expensive, especially if it also has to be labelled manually. 
+This has lead to the emergence of a field of synthetic data. \cite{dwibediCutPasteLearn2017}
+Synthetic data is artificially generated data, it can for example be the results of simulation.
+In general, simulation is used in many fields of engineering and science and extending it to deep learning has been tried in various formats. 
+Examples of ways to simulate data includes algorithms such as \ac{GAN}' \cite{goodfellowGenerativeAdversarialNets} and \ac{VAE} \cite{kingmaAutoEncodingVariationalBayes2014}.
+% to name a few.
+These are typically larger models, and for this project with only $200$ images I deemed it infeasible to try creating one of these. 
+For interested readers, a concurrent Masters project employed a \ac{GAN} in a x-ray potato dataset \cite{johannessonGeneratingRealisticArtificial}.
+%, so for this we explored a different way to generate synthetic data to be used in our training.
+
+Our training set consisted of a limited amount of shapes. This might have induced any model trained on it to overfit to these specific shapes.\sidenote{This had in fact happened on a previous pilot project at FOSS.}
+Thus, in order to remove any possible shape dependence, a training set containing many different kinds of artificial shapes was created.
+%In order to beat the problem of i.i.d. , and to attain some of the benefits of combinatorial reasoning, an algorithm to create artificial foreign objects to be superimposed on images was created. 
+Our algorithm draws inspiration from the creation of our images. They were physically created by "adding" foreign objects on top of different meats. 
+We tried creating the obvious pendant by adding foreign objects on top of our meat algorithmically.
+%The obvious pendant would be to add foreign objects on top of our meat algorithmically. 
+In the best case scenario, this would let us learn to recognise any shape of objects, even though we had only trained on circles and squares.
+%In some sense this algorithm does the same adding, just in the software.
+% Just draw on top.
+Further motivation for why this approach might work was two fold:
+
+% SImple
+Firstly, the Lambert-Beers equation \eqref{eq:lamb} suggest that by splitting $\mu$ in $\mu_{meat}$ and $\mu_{FO}$, we get
+% and imagine that we add $x_{metal}$ on top of a meat sample we get:
+\begin{align}
+	\label{eq:lamb_extended}
+	I(x) = I_0 \:e^{-\mu_{meat} x_{meat} - \mu_{FO} x_{FO} }.
+\end{align}
+Taking the negative log of this ratio of intensities we get to the format of our images:
+\begin{align}
+	\label{eq:meat_metal_sum}
+	 - \log\frac{I(x)}{I_0}  = \mu_{meat} x_{meat} + \mu_{FO} x_{FO} 
+\end{align}
+This view is simplistic as it disregards the dual energy.
+However, it suggest that adding metal is additive in the signal.
+Furthermore, if we can subtract the background from images with metal, what we have left would be the contribution of the metal. 
+This can then be used to create arbitrary shapes as artificial foreign objects.
+%synthetic data.
+%We see that the effect of adding metal in these admittedly simple view, which completely disregards dual energy, is additive in our final signal. This leads one to intuit that if we can subtract the background from areas with metal, it should be possible to use these values for the metal to draw arbitrary shapes other places. 
+%But to repeat, this hinges on our ability to subtract the background.
+
+% Cut n Paste
+Secondly, an alternative way to motivate our approach is in the literature on synthetic data. 
+%paper -> Cut and paste
+Specifically, we could take inspiration from the paper \cite{dwibediCutPasteLearn2017}, 
+which introduces an approach they term: Cut, Paste and Learn.
+This creates synthetic data as you could imagine: By cutting objects from one setting and pasting them into another.
+% Cut and paste in instance learning and object detection on 
+That paper concerns instance detection, which is a sub category of object detection. 
+For instance detection one has to able to differentiate between different instances of the same object.\sidenote{A possible example being distinguishing one brand of canned soup from another in a supermarket for example.} 
+%The dataset they are working with is the GMU Kitchen dataset \cite{georgakisMultiviewRGBDDataset2016}, which is RBG images. 
+They show that combining synthetic data with real data they can increase the relative performance of their trained model by $21\%$ on benchmarks. 
+While this dataset is significantly different, the idea that one could make useful synthetic data simply by cutting and pasting lends credit to our approach. 
+They work with RBG images, but for x-rays, I believe a reasonable replacement of pasting is addition. 
+Pasting would after all overwrite the local information, where as addition mimics the real world effect as shown above.
+
+\begin{figure}[h]
+	\begin{whole}
+		\includegraphics[width=\linewidth]{./figures/chapter4/overview_addafo2.pdf}
+		\caption{Overview of the artificial foreign object pipeline. First we draw a random foreign object from our set of bounding boxes containing foreign objects. Alongside it, we create a pseudo-random shape. Examples of both shown in the upper row. From the foreign object we subtract the background (blue arrow). The random shape is pixelated to the size we are interested in (orange arrow). Using the results of both processes we can create window containing only zeroes and our new foreign object. This can then be added to a window containing only background.}
+		\label{fig:addafo_overview}
+	\end{whole}	
+\end{figure}
+
+The overall idea in our algorithm is to create random shapes, give these plausible intensities generated from our pool of labelled foreign objects, and then add these to otherwise empty windows. For any given dataset the steps required are summarised in \figref{fig:addafo_overview}, and further elaborated below.
+
+\subsection{Gathering the Foreign Objects}
+To obtain an approximation of a foreign object's linear attenuation coefficient, we gathered all the bounding boxes containing foreign objects. Before collecting them the background image was subtracted from the images the boxes belonged to. 
+The background was approximated by applying a channel-wise median filter of size $25 \times 25$ to the full picture.
+This way to approximate the background is reminiscent of one of the steps taken in the threshold algorithm used to do foreign object detection by FOSS, and it was suggested to me by Erik Dreier. 
+% Blue arrow algorithm
+This subtraction of the background is represented by the blue arrow in the \figref{fig:addafo_overview}, which leads from a bounding box containing a metal ball to one with the background subtracted. 
+The values of the colorbar changes, and the corner pixels change values relative to each other.
+Further examples of the result of this process, and of different bounding boxes, can be seen in \figref{fig:sample_fos}
+
+\subsection{Creating Random Shapes}
+% Shape independence 
+The shapes/objects are created in two steps. First, a "high resolution" shape is created and it is then pixellated to fit into a window.
+The shapes created are 2D. 
+%This was natural since the images are 2D, but one could do a fuller
+A more complete simulation could include 3D objects and then project them to 2D if specific 3D shapes was of interest.
+% Github
+The high resolution random shapes were created using the approach presented by the user ImportanceOfBeingErnest on stackexchange in reply to \cite{PythonCreateRandom}. In the following, the method for creating random shapes, which is based upon Bézier curves of the third order, is described.
+
+\begin{figure}[t]
+	\begin{sidecaption}[Sample of FOs]{In the upper row is shown a sample of four bounding boxes with foreign objects. The lower row is the same objects with the background subtracted.}[fig:sample_fos]
+		%\antimpjustification
+		\centering
+		\includegraphics[scale=1.]{./figures/chapter4/FO_bb_ex.pdf}
+		\includegraphics[scale=1.]{./figures/chapter4/FO_bb_ex_woutbackground.pdf}
+		%\includegraphics[scale=1.]{./figures/chapter4/sample_4fos_wb.pdf}
+	\end{sidecaption}
+\end{figure}
+
+%Bezier curves
+\sidefigure[Bezier curve]{In blue a Bézier curve of the third order. The orange points are the end points, with the green the intermediate ones. }[fig:bezier_curve]
+{\includegraphics[scale=1.]{./figures/chapter4/bezier_curve.pdf}}
+Bézier curves is named after Pierre Bézier \cite{BezierCurve2020} who used them for designing cars in the sixties. Today, they are widely used in computer graphics. A Bézier curve of the third order is specified by four points $P_i, \: i \in (0,\dots 3)$, with an example shown in blue in \figref{fig:bezier_curve}. Here $P_0$ and $P_3$ are end points and $P_1,P_2$ the intermediate points. For the interval $t \in [0,1]$ the curve is defined as:
+\begin{align}
+	B(t) = (1-t)^3 P_0 + 3(1-t)^2 t P_1 + 3 (1-t) t^2 P_2 + t^3 P_3 
+\end{align}
+This is recognized as the expectation of a function, $f(k)$, of a random variable, $k$, given by a Bernouilli distribution  \cite{cichonBernoulliSumsBernstein}:
+\begin{align}
+	B(t) = \sum_{k=0}^{n} f(k/n) \binom{n}{k} t^k (1-t)^{n-k}
+\end{align}
+A third order Bézier curve has $n=3$ and $f(k) = P_k$.
+% Interpretation of the above.
+In the limits of $t = 0,1$ we have $B(0), B(1) = P_0, P_3$ which are the end points. As $t \to 1$ the intermediate points contribute to the curve. 
+% How to get the intermediate points
+
+Now, in order to get a smooth pseudo random shape we need to draw a number of random points\sidenote{Three or more.} which will serve as endpoints for our Bézier curves.
+Thus, each pair of neighbouring points on the clock is connected through Bézier curves. 
+To get a smooth shape, the intermediate points of each curve must be specified carefully.
+% angle of curves
+First of all, the angle of the curves through each point is the average of the angles between it and its two neighbours, unless the parameter edgy is defined. 
+Edgy controls the edginess of the corners of the shapes by being a weight in the averaging of angles.
+% Parameters edgy and rad.
+%The parameters rad and edgy. 
+Then the intermediate points between two end points is set using the angle of the curve at the endpoints and continuing in a straight line for some distance. 
+This distance is determined by a radius, which has the corresponding parameter rad in the code.
+%Rad determines the from the end points to the intermediate points used to draw the shapes. 
+A overview plot of both the parameters effect on random shapes is shown in \figref{fig:alg_ran_shapes}. 
+% Reference example
+
+\begin{figure}[h]
+	\begin{sidecaption}[Algorithm to create random shapes overview.]{Algorithm to create random shapes overview. Figure taken from \cite{PythonCreateRandom}}[fig:alg_ran_shapes]
+		\antimpjustification
+		\centering
+		\includegraphics[width=\linewidth]{./figures/chapter4/random_shapes_alg.png}
+	\end{sidecaption}
+\end{figure}
+
+% Shape to pixels
+The shape was pixelated by initially creating a it on a ten times finer scale than the one desired. 
+This scale was then reduced by averaging whether each fine grained cell was inside or outside the shape in question.
+In this way the grid is reduced by a ratio of $10 \times 10$. 
+This leaves a smaller grid, in our case $8\times 8$, with each grid cell giving the percentage to which the cell is inside the shape.
+In the overview (\figref{fig:addafo_overview}) the averaging process is represented by the orange arrow.
+Examples of fine-scale curves and their corresponding reduction is given in \figref{fig:ran_shapes}.
+
+\subsection{New windows}
+Finally, a random foreign object is drawn from our bounding box set.
+From the foreign object, we took the channel-wise mean of the four highest values to use as a representation of a foreign object.
+% WHy 4.
+The use of four values is more or less entirely arbitrary, to the extend that choosing more than one reduced the statistical uncertainty.
+This mean was multiplied with the pixelated shape resulting in an artificial foreign object. 
+This object was thus approximated to be made of the same material and thickness as the foreign object drawn.
+%intended to approximate the shape to be of the same material as the foreign object.
+The new artificial foreign object was then inserted on a random position in a zeroed array of the same size as the windows. 
+This served as a "top window" which could then add on top of any negative window to create a positive sample.
+This allowed us to enhance the training set with more positives, and more importantly, positives with "any" shape.
+
+\begin{figure}[t]
+	\begin{sidecaption}[Randomly generated shapes.]{Four pseudo-randomly generated shapes is shown on the upper row, with the resulting pixelation shown below.}[fig:ran_shapes]
+		\antimpjustification
+		\centering
+		\includegraphics[scale=1.]{./figures/chapter4/shape_4examples.pdf}
+	\end{sidecaption}
+\end{figure}
+
+\subsection{AFO transformation}
+Finally, the above was implemented as a Pytorch transformation\sidenote{From the github link: /cnn2/model/ArtificialFO.py}.
+This transformation is different from the standard data augmentation transformations because it also changes the label of the windows. 
+Furthermore, I decided to only apply the transformation to windows that did not have any FO's to begin with in order to not dilute the original true signal.
+The transformation was applied to negative windows with a $20\%$ chance when it was used. This probability is a tune-able hyper parameter.
+Examples of empty backgrounds before and after the addition of an artificial foreign object can be seen in \figref{fig:new_win}.
+
+%\newpage
+\begin{figure}[h]
+	\begin{sidecaption}[New generated.]{In the top row is showed the low energy channel of a sample of windows form the training set. The second row show the same windows with the addition of artificial foreign objects generated using the shapes from \figref{fig:ran_shapes}}[fig:new_win]
+		%\antimpjustification
+		\centering
+		\includegraphics[scale=1.]{./figures/chapter4/new_4windows.pdf}
+	\end{sidecaption}
+\end{figure}

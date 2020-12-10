@@ -1,0 +1,16 @@
+# ecluded data files
+# Tex files
+*.aux
+*.log
+
+/cnn/data/*
+!/cnn/data/mat_to_hdf5.py
+!/cnn/data/loaddat_hdf5.py
+!/cnn/data/filters.py
+
+/cnn2/experiments/*
+!/cnn2/experiments/readme.txt
+
+/cnn2/wandb/*
+
+

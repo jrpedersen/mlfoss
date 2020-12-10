@@ -1,0 +1,297 @@
+\chapter{Foreign object detection} 
+\label{chap:results}
+This chapter presents the final results and insights gained from evaluation of our final model.
+In \secref{sec:evaluation} an evaluation of our \ac{CNN} architecture is presented, with various ways to evaluate the models performance shown.
+In \secref{sec:limits}, a more nuanced analysis of how the limited datasets might limit model generalization performance is presented.
+
+\section{Evaluation of Model}
+\label{sec:evaluation}
+The model being evaluated in this section is specified in \secref{sec:mymodel}.
+As a reminder, the overlapping sliding windows of $32x32$ are used to preprocess the images, meaning every pixel is evaluated anywhere from $1$ to $4$ times, with $4$ being the norm for any pixel more than $16$ pixels from any border. 
+
+A plot of the convergence of the final model can be seen in \figref{fig:result_con}. The network was trained for 15 epochs. During training the loss was measured for each 50 mini-batches (plotted in blue), and after each epoch the loss and the accuracy on the validation set was calculated (plotted in orange and green respectively). The best accuracy on the validation set is achieved after 9 epochs of training, and the model corresponding to this epoch was chosen as the final model.
+
+\begin{figure}[h]
+	\begin{sidecaption}[Convergence plot.]{A figure showing training (Blue) and validation (Orange) loss as a function of the number of epochs trained. Superimposed is the validation accuracy (Green) again as a function of epochs. The final model was chosen to maximize validation accuracy, which was at epoch 9.}[fig:result_con]
+		\antimpjustification
+		\centering
+		\includegraphics[scale=1.]{./figures/chapter7/results_convergence.pdf}
+	\end{sidecaption}
+\end{figure}
+
+%\newpage
+\subsection{Test set evaluation}
+\sidefigure[ConfM]{Confusion matrix for best model on test data. The final accuracy is $98.74\%$.}[fig:cm_test]
+{\includegraphics[scale=1.]{./figures/chapter7/cm_test_margin.pdf}}
+
+Testing on the full \textbf{Test Set} gave an accuracy of $98.74\%$. 
+To summarise the overall binary performance on a window basis, we have also plotted the confusion matrix in \figref{fig:cm_test}. 
+The confusion matrix reveals a large number of False Negatives, with a total of $243$ windows. We know that the sliding window approach in my implementation is expected to give a number of cases where the window gets a False Positive label. This is due to the binary masks being square, and potentially used to cover round foreign objects, thus leaving the corners with the wrong truth value. This explains to some degree the inflated number of False Negatives, but to what exact degree is not explored here.  %\todo{Include a page of examples of FN and FP.}\\
+
+To illustrate the trade-off, inherent in binary prediction tasks, between false negatives and false positives, we introduce the \ac{ROC-curve}.
+It is defined as the true positive rate as a function of the false positive rate. 
+The model outputs a score for each binary category, and the final prediction is the maximum of the two outputs. 
+This is equal to taking the difference of the two outputs, and having a decision threshold of $0$. To create the full \ac{ROC-curve} we will instead vary the this threshold, in order to go from a false positive rate of $0$ to $1$.\sidenote{With a false positive rate $=0$ corresponding to $0$ false positives, which in this case means no positive predictions. This would return the accuracy to its' baseline of never predicting foreign objects.}
+%The final prediction of the model is the maximum of the two outputs, each corresponding to the score for a category each\sidenote{No foreign object or negative, and foreign object or positive, respectively.}. This is equal to taking the difference of the two outputs, and having a threshold of $0$. To create the full \ac{ROC-curve} we will instead vary the above threshold.
+The result is seen in \figref{fig:roc_test}. The \ac{ROC-curve} is plotted in blue, and the rates corresponding to a threshold of $0$ is plotted as the orange dot.
+The \ac{AUC} is $0.981$, with a theoretical maximum of $1.0$. In the bottom right corner is shown a close-up showing how the \ac{ROC-curve} changes around the threshold of $0$.
+We see that when we optimize for high accuracy we optimize for false positive rate as opposed to true positive rate. 
+
+\begin{figure}[h]
+	\begin{sidecaption}[Test ROC.]{\antimpjustification \ac{ROC-curve} (Blue) for the outputs of the final model. The area under the curve (AUC) is $0.981$. In the bottom right corner is a visualization of the top corner. 
+	The rates, when the prediction is the maximum of the two outputs, is plotted as the orange cirle.
+}[fig:roc_test]
+		\antimpjustification
+		\centering
+		\includegraphics[scale=1.]{./figures/chapter7/roc_test.pdf}
+	\end{sidecaption}
+\end{figure}
+ 
+%This is shown only optimized for the validation accuracy, and so there is some possibility of moving the tradeoff between FP and FN. The overall accuracy is $98.74\%$. \\
+%\newpage
+Taking a more detailed look at the errors, we have plotted a logarithmic histogram over the different between the softmax of the output for both True predictions and False in \figref{fig:hist_pred}.
+In the ideal case the True predictions (Blue) would be U-shaped, and the False predictions (Orange) would be centered around zero. \sidenote{Meaning that the model itself had a "hard time" deciding.} Taking into account the the histogram is logarithmic, the extremes of the True predictions is roughly a factor of $10$ larger than their neighbours resulting in a U-shape. Unfortunately the errors does not seem to be centered around zero. As mentioned above, some of this might be due to the labelling, however, this has not been investigated further.
+%and to which degree this might be the case is hard to tell. 
+
+\begin{figure}[h]
+	\begin{sidecaption}[Histogram over True and False predictions as a function of the softmax normalized output difference.]{Histogram over True and False predictions as a function of the softmax normalized output difference.}[fig:hist_pred]
+		\antimpjustification
+		\centering
+		\includegraphics[scale=1.]{./figures/chapter7/hist_pred.pdf}
+	\end{sidecaption}
+\end{figure}
+
+\subsection{Occlusion test}
+\sidefigure[occ_ex]{An example of one occluded image out of the $1849$ images generated for the test.}[fig:occ_ex]{\includegraphics[width=\linewidth]{example-image-a}}
+%{\includegraphics[scale=1.]{./figures/chapter7/occ_ex_margin.pdf}}
+In order to visualize what the model actually uses to determine its predictions, an occlusion test following \cite{zeilerVisualizingUnderstandingConvolutional2013} was made.
+The idea is to occlude one area of the picture at a time, and then compare the prediction of this new image with the one from the un-occluded image.
+This gives you an intuition for which areas of an image that are important for the final prediction since these will potentially change the prediction. 
+So in short, one generates a full test set from one single image containing all the possible combinations of occluded areas. Then for each pixel in the original image one visualizes which fraction of it being occluded predicts positive. 
+In this way, each pixel gets a value from $0.0$ to $1.0$ which when plotted shows the importance of various areas.
+
+In this case the occluded area was $12x12$ pixels. 
+The size was chosen in order that the occlusion could cover any one foreign object, while still being small compared to the full image.
+Then $(32+12-1)^2=43^2 = 1849$ new windows were generated from one test image, each having a different placement of the occlusion square. An example of one of these can be seen in \figref{fig:occ_ex}. We chose the occlusion to take the value of the local minimum in the window. The window fed to my algorithm is encased in the red square.
+The padding needed to have all variations of occlusions is shown in dark blue.
+%In dark blue I have also shown the padding needed to have all variations of occlusions.
+Since the square is $12x12$, there is $144$ predictions pr. pixel.
+% and then I have visualized which fraction of these pixels that predict the existence of a foreign object in the second row.
+%The interesting thing to visualize is then how the prediction of the model changes as the areas occluded change. 
+In the ideal case we would see that only the foreign objects should change the resulting prediction when occluded.
+% is occluded the model predicts no foreign object, and when the background is occluded the models prediction is unchanged. 
+Three windows from the \textbf{Test Set}, shown in \figref{fig:occ_test} in the upper row, on the same intensity scale across the row. 
+The first (a) is a true positive prediction of the model, the second (b) a false positive, and the third (c) a false negative. 
+On the second row is plotted the importance of each pixel, with a corresponding colorbar below. The importance being the fraction of times occluding the pixel changes the output.
+
+\begin{figure}[h]
+	\begin{sidecaption}[Occulusion test.]{\antimpjustification Three cases representing a true positive (a), false positive (b) and false negative (c) example  is plotted in the top row. Below each is plotted the result of an occlusion test with an occlusion square of size (12,12) with the value of the minimum of each window.}[fig:occ_test]
+		\antimpjustification
+		\centering
+		\includegraphics[scale=1.0]{./figures/chapter7/occlusion_3ex.pdf}
+	\end{sidecaption}
+\end{figure}
+
+We can see that the true positive case behaves ideally. Namely, the prediction only changes, from positive to negative, when the foreign object, in the upper right corner, is covered. For the false positive case we can also see clearly the pixels the model considers to be a foreign object. 
+%namely the small square which is the only one for which the model changes predictions. 
+On the raw image, even to the naked eye, this could look like a foreign object. This is clearly a hard case to predict, and in some sense the model is justified in getting this wrong. 
+Finally, for the false negative case, the picture is more muddled. First of all, the supposed existence of a foreign object is very hard to see with the eye. This could perhaps be a case of wrongly labelled data. Nevertheless, the occlusion test is perhaps the most informative in this case. We see that covering the upper right portion of the image leaves the prediction unchanged, which makes sense. What perhaps does not, is that covering either the left or the bottom part makes the model predict a foreign object. One explanation for this could be that the occluded square creates a strong artificial gradient, which perhaps is enough for the model to start changing predictions. Why this is more prevalent on the edges of the image is hard to say though, but one could speculate that it is harder in general to predict on the edge, which shows that the model is vulnerable in these areas.
+%\newpage
+
+\subsection{Full picture evaluation}
+\begin{figure}[t]
+	\begin{whole}
+		\includegraphics[scale=1.0]{./figures/chapter7/full_picture_evaluation_full.pdf}
+		\caption{The model applied on the two full images. The first row is one the images where the performance was worst, the second row an image where the performance was one of the best. The images themselves are plotted in the first column, with my labelling of bounding boxes of foreign objects (red) on top. In the second column the windows predicting a foreign object is plotted, each contributing $0.25$. Due to the overlap, up to 4 windows can predict positive for each area giving a maximum value of $1.0$. In the third column we have visualized the windows resulting in false positives, and the fourth column we have the false negative predictions.}
+		\label{fig:full_pic}
+	\end{whole}
+\end{figure}
+
+
+So far, we have only looked at model predictions per window. The windows were generated using the sliding windows approach with $50\%$ overlap, which in effect means that each area is in fact evaluated 4 times\sidenote{In fact, only once for the corners, twice for the rest of the edges, and 5 times if there is some extra overlap in some areas due to the sliding windows size not dividing the full picture dimensions.}. This implies that evaluating one window at a time is misleading, since they are not independent. 
+In general, around $40\%$ of the full pictures in the \textbf{Test Set} get a perfect score. These all have no foreign objects though, and mind that a couple of empty full pictures gets some false positives.
+%There are also false positives from some few images without foreign objects as well.
+One could imagine extending the model to combine the different predictions for each $16x16$ square, potentially increasing the performance. 
+
+To investigate this, we visualize the performance of the model on two full pictures in \figref{fig:full_pic}.
+Each row corresponds to a different input picture. 
+For the top row I have chosen one of the images with the worst performance, for the second row I have visualized one the images with foreign objects with best performance.
+%With the LE part of the inputs being plotted in the first column. 
+The low energy channel of the images are plotted in the first column. All the images have my labelling of the foreign objects, as bounding boxes, superimposed in red. In green I have shown the size of an $32x32$ window.
+
+In the second column, we have plotted the windows which were predicted positive. Here the colorscale corresponds to the ratio of overlapping windows predictions being positive. In both rows, there seems to be a very good overlap between the positive predictions (yellow areas) and the foreign objects (red boxes). Furthermore, not a single foreign object is, in these two examples, not spotted by at least one of the windows.\sidenote{which would show as a red square on the darkest blue background.} 
+
+In the third column, the windows resulting in false positive predictions are shown. 
+A clear example of a false positive prediction is seen in the upper left corner in the first row image.
+On the other hand, we can see that not a single time do we have more than two consecutive windows giving a false positive prediction. At least for these examples.
+
+In the fourth column the false negative predictions are shown.
+We see that a fair amount of false predictions belongs to windows that just barely overlaps a bounding box. These are the False Positive labels that as mentioned would show up as "impossible" predictions. In the top row there are a few cases where a foreign object is overlapped centrally and not found. These can not be explained away, and are more troublesome. In general, there are very few areas which get all four predictions wrong. Thus, this shows that qualitatively the model seems to work reasonably well.
+%One could imagine different schemes for combining the predictions on the windows, but to begin with it would be informative 
+%To plot the full pictures with the areas colour coded after the number of correct predictions which can be seen in \figref{fig:full_pic}.
+%performance to be gotten using this fact, and as a minimum it should be informative to evaluate on the full picture. 
+\section{Bounds on generalization}
+\label{sec:limits}
+This section explores some of the limits of the model. The idea is to see how the model performs outside of the training regime.\sidenote{This is also called domain shift.\cite{DomainAdaptation2020}}, in some controlled fashion
+First, in \secref{sec:sanity}, the model is tested on \textbf{Uniform}. This is a dataset where it is easy spot the foreign objects with the naked eye, due to the background being uniform. Thus we would expect the model to perform well even though it is tested on data not represented in the training sets.
+Next, \secref{sec:ddependence} investigates the connection between training set and generalization ability.
+%the importance of training set compared to the ability to generalize on the other datasets is investigated, 
+We look at the generalization by testing on datasets different from training\sidenote{Using the three datasets that make up \textbf{Mixed}.}, with and without the introduction of artificial foreign objects from \secref{sec:afo}.% The potential benefits of this approach is then evaluated.
+
+%\vspace*{-0.4cm}
+\subsection{Uniform backgrounds}
+\label{sec:sanity}
+\textbf{Uniform}, introduced in \secref{sec:data_press}, is the dataset with a simple, almost uniform, background of varying thickness with two areas containing phantoms. 
+The overall accuracy for the model evaluated on this dataset is $0.962$ compared to a baseline of $0.870$.\sidenote{The baseline from predicting no foreign object on every window.} 
+This is $0.025$ lower than the score for the \textbf{Mixed} \textbf{Test Set}.
+% of \textbf{Circles}, \textbf{Squares} and \textbf{Pens}.
+This is mainly due to the fact that the model was not trained on these images. 
+Nevertheless, the dataset itself was supposedly "easier" to predict on, given that the background is comparably uniform.
+One could imagine that this accuracy depends on the thickness of the background, since increasing thickness reduces the signal-to-noise ratio of the foreign elements.
+This relationship is plotted in \figref{fig:thick}.
+Shown is the full picture accuracy for the $47$ pictures in \textbf{Uniform}, with the mean of the full picture accuracy as a function of the number of POM plates\sidenote{i.e. thickness of background.} plotted in blue and orange, respectively. The errorsbars represent the standard error on the mean. It initially seems hard to conclude that varying the thickness in itself affects the performance of the model, even though there is a trend showing degrading performance as the number of POM plates increase past $11$ plates. 
+%\vspace*{-0.4cm}
+
+\begin{figure}[h]
+	\begin{sidecaption}[Thickness vs Accuracy.]{Thickness (\# POM plates) vs Accuracy. In blue is shown the single picture accuracy (ratio of correctly predicted windows). The mean is plotted in orange, with the standard error on the mean shown as symmetrical errorbars. The green line is the accuracy, of $98.74 \%$, on the full \textbf{Test Set}. }[fig:thick]
+		%\antimpjustification
+		\includegraphics[scale=1.0]{./figures/chapter7/thick_vs_acc.pdf}
+	\end{sidecaption}
+\end{figure}
+%Testing on the full \textbf{Test Set} gave an accuracy of $98.74\%$.
+%Uniform dataset intro
+
+Taking a closer look at the drop in accuracy, we can repeat the full picture evaluation from last section, \secref{sec:evaluation}. 
+The full picture with the lowest accuracy, of $0.924$, is chosen to visualize the performance of, in \figref{fig:sanity}.
+As in the previous section, the low energy channel of the image is plotted in the first column. My labelling of the foreign objects, as bounding boxes, is superimposed in red. The green square shows the size of a $32 \times 32$ window.
+
+In the second column, we have the windows which was predicted positive. The performance seems to have worsened, compared to \figref{fig:full_pic}. Many positive predictions do not overlap with any red squares. 
+This is confirmed when looking at the false positive predictions, in the third column: The number of false positives have increased.
+Finally, roughly half of the false negative predictions, plotted in the fourth column, shows the same behaviour as in \figref{fig:full_pic}. These are the rightmost phantoms, and they barely overlap a bounding box. These could be artefacts of the sliding window approach. The other half, on the left side, shows the model missing some foreign objects.
+
+The network does not make any mistakes on the background outside the box being scanned. This was also the case in the examples in \figref{fig:full_pic}, and in that sense, the network has learned to spot uncovered conveyor belt.
+
+\begin{figure}[h]
+	\begin{whole}
+		\includegraphics[scale=1.0]{./figures/chapter7/sanity_worst.pdf}
+		\caption{The model applied on an image belonging to \textbf{Uniform}. I have chosen the image where the model performed the worst. In the first column the low energy channel of the image is plotted, with my labelling of bounding boxes of foreign objects (red) on top. The green square in the corner indicates the sliding window size. The second column shows the windows predicting a foreign objects, each contributing $0.25$. Due to the overlap, up to four windows can predict positive for each area giving a maximum value of $1.0$. The last two columns show the false positives and false negatives, respectively.}
+		\label{fig:sanity}
+	\end{whole}
+\end{figure}
+
+\subsection{Dataset dependence}
+\label{sec:ddependence}
+This subsection studies the ability to generalize of the \ac{CNN} approach trained on limited data.
+%hypothetical case of partial data.
+%This subsection I have tried to study the hypothetical case where we only have part of the data. 
+%This is strictly speaking not hypothetical at all, 
+After all, all the available data is lab data, in the sense that it is created explicitly for developing and testing algorithms. 
+This lab data has to be representative for the underlying distribution for the reported test accuracies to be trustworthy.
+Thus, it is naturally of interest to know whether your training sample is biased, and what the possible consequences would be.
+It is unknown to what extend the lab data is biased compared to the eventual use-cases of the Meat Master II.
+On the other hand, we have tried to analyse the possible consequences of bias by simulating the case of partial data. 
+
+We split the \textbf{Mixed} dataset into its constituent parts: \textbf{Cirles} (\textbf{Ci}), \textbf{Squares} (\textbf{Sq}) and \textbf{Pens} (\textbf{Pe}).
+Then, the model was trained on each partial dataset alone, and then evaluated the resulting model on all three datasets.\sidenote{When evaluated on the dataset it was trained with, we report the result from the validation set. Where as evaluating on a different dataset the entire dataset was used a validation set.}
+%As an attempt to approximate this 
+%the potential real world case of training the model on data from a biased sample.
+% that our test sample is representative for the full distribution that a model would be used on.
+%It would, after all, be hard to prove that the available data constituted a representative sample from the full distribution that a model would be used on. Or at least guarantee.
+Thus, this is an attempt to approximate the potential real world case of training the model on data from a biased sample.
+Furthermore, this might give some insight into which dataset is the most powerful one to generalize from.
+Finally the addition artificial foreign objects is evaluated in this context as well.
+In order to make a fair comparison between the binary choice of whether to use artificial foreign objects, we optimized an extra hyperparameter in my runs. 
+%In order to make as fair a comparison as possible between the three datasets and the binary choice of whether to use artificial foreign objects, I had to include an extra variable in my runs. 
+Namely, the weight given to the positive labels in the loss functions. 
+This weight rebalance the ratio of positive to negative labels of the windows in the loss function.
+% with only $~ 0.05$ with positive labels.\sidenote{Real world distribution} 
+Introducing artificial foreign objects also moves this balance by turning $20\%$ of the negatives to positives.
+This potentially makes the extra weighting of positives unnecessary for convergence. 
+For each dataset we tested three different weights $1,2,4$, and chose the optimal one using cross-validation.
+Thus for the following we used a weight of $2$ when training without artificial foreign objects. With artificial foreign objects the weight was $1$ for training on \textbf{Squares} and \textbf{Pens}, and $2$ when training on \textbf{Circles}. 
+%These values were found using a gridsearch of $[1,2,4]$.
+%dependent on the rate with which the transformation introducing them is used, which was as a standard set to $0.25$. Thus even for a small weight of 2, there would now be a bigger contribution to the loss from positives than from negatives. 
+%This I checked explicitly, and for the following results the weight for positives in the loss when training with artificial foreign objects is set to $1$, and in these cases $2$ for the comparison. 
+
+\begin{table}
+	\begin{tabular}{l|ccc}
+		\hline
+		Accuracy	& Trained on \textbf{Ci} &   Trained on \textbf{Sq} &   Trained on \textbf{Pe} \\
+		\hline
+		Test \textbf{Ci} w/ AFO=0 & \cellcolor{pblue!25} 0.9940 &        0.9897 &        \textbf{0.9522} \\
+		Test \textbf{Sq} w/ AFO=0 & \textbf{0.9379} &        \cellcolor{pblue!25} 0.9951 &        0.8246 \\
+		Test \textbf{Pe} w/ AFO=0 & \textbf{0.9594} &        \textbf{0.9694} &        \cellcolor{pblue!25} \textbf{0.9778} \\
+		\hline
+		Test \textbf{Ci} w/ AFO=1 & \cellcolor{pblue!25} \textbf{0.9948} &        \textbf{0.9917} &        0.9433 \\
+		Test \textbf{Sq} w/ AFO=1 & 0.9195 &        \cellcolor{pblue!25} \textbf{0.9957} &        \textbf{0.9357} \\
+		Test \textbf{Pe} w/ AFO=1 & 0.9579 &        0.9677 &        \cellcolor{pblue!25} 0.9772 \\
+		\hline
+	\end{tabular}
+	\caption{Accuracy for different combinations of training and test datasets. The columns represent the data trained on, with the rows being the data tested on. \textbf{Ci}, \textbf{Sq} and \textbf{Pe} are short for \textbf{Cirles}, \textbf{Squares} and \textbf{Pens}.
+	The table is divided in two, with Artificial Foreign Objects added 
+	(AFO=1) and without (AFO=0). 
+	In the diagonals (blue background) the model is evaluated on the corresponding validation set. 
+	The best accuracy between the two tables with and without artificial foreign objects is written in bold font.}
+	\label{tab:afo_acc}
+\end{table}
+
+%I show accuracy
+The accuracy is presented first.
+\tabref{tab:afo_acc} shows the $3 \times 3 \times 2 = 18$ different accuracies the models obtains.\sidenote{$3$ datasets used for training, the same $3$ datasets as possible test sets, and finally with and without artificial foreign objects, $2$.} The bold font marks the best performance with and without artificial foreign objects. 
+We notice two things: First, in both tables, the accuracy drops off the diagonals. This shows that all performance drops when evaluated out of distribution.
+%The first result is the drop in accuracy off the blue marked diagonal, in both the upper and lower table. 
+This drop in accuracy is especially pronounced when the model was trained on \textbf{Circles} or \textbf{Pens}. The smallest drop in accuracy is when the model is trained on \textbf{Squares}. 
+%This dataset is the largest, containing roughly half of the total images.\todo{Due to foreign objects type?}
+%Nevertheless, this does not explain why the performance drops for the others, since they converge fine on their own.
+This shows that the training dataset needs to be carefully selected to represent the full range of foreign objects likely in meat samples.
+%one has to be careful when training and testing happens one significantly different datasets.
+Secondly, it does not seem like the addition of synthetic data changes the lowering of accuracy off the diagonal. 
+
+Introducing more positive windows in our training can potentially move the balance between false positives and false negatives, which the accuracy does not reflect. To explore this the \acp{ROC-curve} are shown in \figref{fig:rocc_afo}.
+When not trained on \textbf{Squares} (Column 1 and 3) the addition of artificial foreign objects drastically improves the curves when tested on \textbf{Squares} (orange). 
+%The first answer to that is that I didn't start out with the full dataset. In that sense evalua
+\tabref{tab:afoauc} shows this improvement reflected in the \acp{AUC} in the second row of each table. The difference \ac{AUC} is approximately increased by $0.05$ when using artificial foreign objects.
+The lower left triangle is of special interest, since this area represents training on a comparatively simpler dataset to the ones tested on. That the \ac{AUC} is increased here is encouraging.
+
+\begin{figure}[h]
+	\begin{whole}
+		\includegraphics[scale=1.0]{./figures/chapter7/rocc_addafo2.pdf}
+		\caption{\acp{ROC-curve} showing model performance. Each column corresponds to different training sets: \textbf{Cirles} (\textbf{Ci}), \textbf{Squares} (\textbf{Sq}) and \textbf{Pens} (\textbf{Pe}).
+		The blue, orange and green curves correspond to testing on \textbf{Cirles}, \textbf{Squares} and \textbf{Pens}, respectively. The opaque curve corresponds to training without artificial foreign objects (AFO=0).
+		}
+		\label{fig:rocc_afo}
+	\end{whole}
+\end{figure}
+
+\begin{table}
+\begin{tabular}{l|ccc}
+	\hline
+	AUC	& Trained on \textbf{Ci} &   Trained on \textbf{Sq} &   Trained on \textbf{Pe} \\
+	\hline
+	Test \textbf{Ci} w/ AFO=0 & \cellcolor{pblue!25} \textbf{0.9957} &        0.9781 &        \textbf{0.9860} \\
+	Test \textbf{Sq} w/ AFO=0 & 0.8955 &        \cellcolor{pblue!25} \textbf{0.9785} &        0.9166 \\
+	Test \textbf{Pe} w/ AFO=0 & 0.9531 &        0.9521 &        \cellcolor{pblue!25} \textbf{0.9781} \\
+	\hline
+	Test \textbf{Ci} w/ AFO=1 & \cellcolor{pblue!25} 0.9920 &        \textbf{0.9825} &        0.9834 \\
+	Test \textbf{Sq} w/ AFO=1 & \textbf{0.9434} &        \cellcolor{pblue!25} 0.9763 &        \textbf{0.9697} \\
+	Test \textbf{Pe} w/ AFO=1 & \textbf{0.9557} &        \textbf{0.9526} &        \cellcolor{pblue!25} 0.9779 \\
+	\hline
+\end{tabular}
+\caption{
+\ac{AUC} for different combinations of training and test datasets. The columns represent the data trained on, with the rows being the data tested on. \textbf{Ci}, \textbf{Sq} and \textbf{Pe} are short for \textbf{Cirles}, \textbf{Squares} and \textbf{Pens}.
+\textit{AFO} indicates whether the model used artificial foreign objects to create synthetic data. 
+In the diagonals (blue background) the model is evaluated on the corresponding validation set. 
+The best \ac{AUC} between the two tables with and without artificial foreign objects is written in bold font.	
+}
+\label{tab:afoauc}
+\end{table}
+
+In summary, the performance drops whenever the model is applied outside of the training domain.
+This is the case when we apply it to some supposedly simple data such as \textbf{Uniform}.
+Furthermore, this is also seen for training on the constituent parts of \textbf{Mixed}. This is not overfitting since the model performs well on the dataset that it is trained on.
+The problem is instead that this performance does not translate to other datasets.
+We saw that measured on the accuracy we can not conclude the using artificial foreign objects improve our result.
+%We also saw that using artificial foreign objects did not necessarily fix this.
+%I do not think we can conclude that simulated or synthetic will never work.
+There was a clear effect on some of the \acp{ROC-curve} though.
+These are in many ways a more thorough way to evaluate performance, and the increase here shows that Artificial Foreign Objects can help the modelling process.

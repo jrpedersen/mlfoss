@@ -1,0 +1,128 @@
+\notocchapter{Introduction}
+\label{chap:intro}
+	%\caption{The Meatmaster II.}
+	%\label{label_ex2_nofod}
+%\end{marginfigure}
+\sidefigure{Wilhelm Röntgen, from \cite{WilhelmConradRontgen2020}}{	\includegraphics[width=\linewidth]{figures/chapter1/Wilhelm_Röntgen_by_Nicola_Perscheid_1915b.jpg}}[3]
+%Context
+% X-ray absiometry
+%\subsubsection{Context x-rays}
+% X-ray introduction
+%Since the discovery of x-rays in 1895 by Wilhelm Röntgen, x-rays have found uses in countless places. 
+%Since the discovery of x-rays in 1895 by Wilhelm Röntgen,
+Wilhelm Röntgen discovered x-rays in 1895 as a penetrating electro-magnetic radiation.
+The ability to penetrate matter made it possible to take pictures of the insides of solid objects, and this found use almost immediately in the medical industry.
+% What is it?
+%This ability to see through otherwise solid objects found use almost immediately in the medicinal industry.%\sidenote{With the first medical image taken of his wife's hand a month later.}
+This resulted in Wilhelm recieving the first Nobel prize in physics in 1901 \cite{NobelPrizePhysics}.
+%The ability to see through otherwise solid objects is used everywhere from airport security to the medicinal industry to the food processing one.
+% Where has it been used?
+Today, x-rays have numerous applications: From airport security, in the medical industry to food processing.
+%This has found use everywhere from airport security to the medicinal industry to the food processing one.
+% Food industry & Non-destructive
+In the food processing industry, the ability to do non-destructive inspection of food is an incredibly cost effective way to make quality control.
+Contrary to a destructive procedure using statistical sampling to test, with x-rays it is possible to scan objects non-destructively. 
+For this reason, x-ray technologies has been adopted in various food lines in factories.\cite{haffXrayDetectionDefects2008}%\todo{CItations or examples?}
+
+% Optics and computer vision
+%\subsubsection{Context CV and ML}
+% Test all -> lot of data
+%With the ability to test all the food in a production line enormous amounts of data are generated.
+The ability to inspect all the food in a production line generates enormous amounts of data.
+% Lot of data -> automatization
+To make proper use of the data, the analysis needs to be automatic.
+%General to optimics, and also for x-rays, is the production of images. 
+% Automatization to computer vision
+%Automating the treatment images, in the case of x-ray imaging, is the field of computer vision.
+The field of computer vision concerns the automated analysis of images.
+% ML revolution in computervision
+The past years, the field of computer vision has undergone a revolution with the introduction of deep learning \cite{lecunDeepLearning2015}.
+The development of deep learning has been driven by companies like Google and Facebook, who are pushing the boundaries of what is possible in many areas of application.
+%been dominated by machine learning as companies like Google and Facebook are pushing the boundaries for what is possible.
+% Deep learning briefly
+With deep learning, it is possible to take advantage of large datasets to create models of greater size than before in order to get extremely good performance.
+% Deep learning made possible by speed up in hardware.
+%This is enabled by the increased capabilities of hardware.%\todo{References for this paragraph.}
+
+% Foss Introduction
+% Foss mission
+\sidefigure{Meat Master II, from \cite{fossMeatMasterIIOne}}{	\includegraphics[width=11.5pc]{images/MeatMaster_II_1000x1000.jpg}}[3]
+%\subsubsection{Context FOSS}
+A company selling optical instruments to use in food production is FOSS, and this piece of work has been birthed in a collaboration with them. 
+FOSS sells the Meat Master II \cite{100MeatAnalysis} which is used in-line in meat production to scan meat. 
+The Meat Master II uses x-rays to primarily determine the fat composition of meats. 
+As a secondary task it scans the meat for foreign objects.
+In meat possible foreign elements could be naturally appearing matter such as bone.
+%\todo{Is these technically foreign objects?}
+More troublesome, is the chance of plastic or metal, which could appear from unfortunate accidents, or perhaps more worrisome, in the form of tampering of the product \cite{nov28HalifaxPoliceInvestigating2016}.
+% or unfortunate artefacts of the production such as metal or plastic.
+%The physics behind how the x-ray images are taken, are for now not \textit{directly} relevant for the work I have made.\\
+%The images/data belongs to FOSS, and it consist of x-ray images produced with their Meat Master 2 \todo{Ref - meat measter 2} machine. The main purpose of this machine is determination of fat percentage in meat, but while doing this it also checks for foreign objects.
+
+%Task
+%\subsubsection{Task}
+% Current methods or one way to implement an algorithm
+The current methods used in the Meat Master II for foreign object detection are threshold-based using computer vision.
+With their threshold-based algorithm, pieces of metal are the easiest to find, small pieces of bone is almost undetectable, and thin slices of plastic are impossible.
+% Problems with threshold methods
+% Relate to the current aim of the thesis.
+The aim of this thesis has been to explore machine learning, and more specifically deep learning, to do foreign object detection.
+The expectation is that it should be possible to implement an algorithm that can detect foreign objects, of metal and bone.
+% Perspectivize a little
+This takes starting point in data from the Meat Master II, but the methods explored here might have more general applications.
+% Sell your own work
+%If one buys into the story of machine learning replacing traditional computer vision methods the best case for thesis would be to introduce this shift in methodology here.\sidenote{SPOILER ALERT: This overarching goal is in no way completed with this work.}
+%This thesis attempts to analyse the use of machine learning for foreign object detection in x-ray images of food. 
+%\todo{Deep learning yaalalala}.
+%Central to all of machine learning is the data. Without data no learning. In general data can take almost any form, but for this project I have mainly been working with images.
+%Object
+% Clarifies what the document covers:
+% Covers these contributions:
+% Trained a ConvNet
+%%%( Deep learning cool)
+% Labelled FOSS data with some programs.
+% Artificial foreign objects
+% Overview of Adam optimizers
+% Thorough analysis of hyper parameters.
+%%% Shoudl have been bayesian but what evs.
+%In broad terms these can be grouped as a data part, a learning part, and finally a model part.\\
+%\subsubsection{Objects}
+%\sidedef{Part I}{}{
+
+This thesis is divided into two parts: X-ray Physics and Setup, followed by Foreign Object Detection with Deep Learning.
+%The first part sets the stage for the introduction of deep learning. 
+\sidedef{Part I}{}{
+%I introduce X-ray physics (\chapref{chap:x-ray}) both the interactions of interest and the source and detector necessary to use it practically.
+X-ray Physics and Setup introduces the physics of x-rays and the data made available by FOSS.
+%To begin with, the physics of x-rays are introduced (\chapref{chap:x-ray}). 
+This includes the electromagnetic interactions of interest and the source and detector necessary for x-ray imaging (\chapref{chap:x-ray}).
+Then the images that constitute the available data are presented and the labelling of the foreign elements is shown (\chapref{chap:datapres}).
+%I present the images that constitute the data I have had to work with and explains how I have labelled the data (\chapref{chap:datapres}).
+}
+%\todo{Introduce acronyms form here?}
+\sidedef{Part II}{}{
+Foreign Object Detection with Deep Learning follows the four steps of a deep learning algorithm as laid out by the main textbook cited \cite[see][sec 5.10]{goodfellowDeepLearning2016}:
+%Following the recipe laid out in \cite[see][sec 5.10]{goodfellowDeepLearning2016} I present the process of using deep learning in four discrete steps: 
+\textit{"... combine a specification of a dataset, a cost function, an optimization procedure and a model"}. 
+First, the data processing leading to the final dataset is specified.
+%I specify the final dataset I have used (\chapref{chap:dataprocs}). 
+This entailed implementing a sliding window algorithm to preprocess the data into a format better suited for the model.
+Furthermore, simple data augmentation transformations, along with a more complex one of my own design which introduces synthetic/artificial foreign objects are described (\chapref{chap:dataprocs}).
+%I have implemented a sliding window algorithm to preprocess the data into a format better suited for my model. Furthermore, I present simple data augmentation transformations, along with a more complex home-brewed one which introduces synthetic/artificial foreign objects.
+Then the cost function and optimizers used are presented. 
+The cross-entropy of the negative log-likelihood was used for cost function. 
+For optimizers, \ac{SGD} with momentum along with variations of \ac{Adam} was used (\chapref{chap:learning}).
+%Then I present the cost function and optimizers I have been using (\chapref{chap:learning}). For cost function I have been using Cross entropy. As for optimizers, I have looked at SGD with/ momentum along with the whole family of Adams .
+%I design a model to train which consists of various components which are chosen by optimization (\chapref{chap:nn}).
+The design of the deep learning model is presented next (\chapref{chap:nn}).
+This concludes the four steps describing the deep learning algorithm, and left is only the evaluation of the approach.
+The results are presented, both for windows and full pictures.
+Furthermore, the performance of the model outside its training regime is explored (\chapref{chap:results}). 
+%Furthermore, I try to explore the performance of the model outside its' training regime (\chapref{chap:results}). 
+%Drawing it all to a close I discuss and conclude in \chapref{chap:conclusion}.
+Drawing it all to a close, the discussion and conclusion are last (\chapref{chap:conclusion}).
+}
+
+% Introduc Pytorch
+For deep learning I used the PyTorch library.
+All of the code, for both the thesis and the models, should be available at \url{https://github.com/jrpedersen/mlfoss}.
