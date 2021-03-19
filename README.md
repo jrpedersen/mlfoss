@@ -1,4 +1,5 @@
-# Abstract
+# Foreign object detection in x-ray images using machine learning
+## Abstract
 The development of better detectors, x-ray sources, as well as faster and cheaper computer processing resources, has made x-ray imaging have numerous applications: From airport security, through medical industry to food processing.
 One way to get more out of x-ray imaging is to use dual-energy x-rays.
 Dual-energy increases the possibilities with x-ray to measure the contents of the scanned objects. 
